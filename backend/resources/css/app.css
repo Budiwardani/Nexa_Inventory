@@ -10,3 +10,25 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* UI enhancements: tilt card and lazy placeholders */
+.tilt-card {
+    transition: transform 220ms cubic-bezier(.03,.98,.52,.99), box-shadow 220ms ease;
+    will-change: transform;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+.tilt-card:active { transform: scale(0.995); }
+
+.lazy-placeholder {
+    background: linear-gradient(90deg, rgba(240,240,240,0.6), rgba(230,230,230,0.6));
+    min-height: 180px;
+    display:flex;align-items:center;justify-content:center;
+}
+.lazy-loaded { opacity: 1; transform: none; transition: opacity 420ms ease, transform 420ms ease; }
+.lazy-placeholder img { opacity: 0; transition: opacity 360ms ease; }
+.lazy-placeholder img.loaded { opacity: 1; }
+
+/* Fade-in helper for lazy-loaded images */
+.lazy-img { opacity: 0; transition: opacity 360ms ease, transform 360ms ease; }
+.lazy-img.loaded { opacity: 1; transform: none; }

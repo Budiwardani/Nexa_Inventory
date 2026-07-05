@@ -11,23 +11,24 @@ class BranchSeeder extends Seeder
     {
         $companyId = DB::table('companies')->where('code', 'NEXA-GLB')->value('id');
 
-        DB::table('branches')->insert([
+        DB::table('branches')->updateOrInsert(
+            ['company_id' => $companyId, 'code' => 'HQ-01'],
             [
-                'company_id' => $companyId,
                 'name' => 'Headquarters',
-                'code' => 'HQ-01',
                 'address' => '123 Enterprise Way, Tech City',
                 'created_at' => now(),
                 'updated_at' => now(),
-            ],
+            ]
+        );
+
+        DB::table('branches')->updateOrInsert(
+            ['company_id' => $companyId, 'code' => 'PL-ALPHA'],
             [
-                'company_id' => $companyId,
                 'name' => 'Plant Alpha',
-                'code' => 'PL-ALPHA',
                 'address' => '456 Industrial Blvd, Factory Town',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-        ]);
+        );
     }
 }

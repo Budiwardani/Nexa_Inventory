@@ -17,9 +17,14 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($roles as $role) {
-            $role['created_at'] = now();
-            $role['updated_at'] = now();
-            DB::table('roles')->insert($role);
+            DB::table('roles')->updateOrInsert(
+                ['name' => $role['name']],
+                [
+                    'description' => $role['description'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
         }
     }
 }

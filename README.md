@@ -77,6 +77,11 @@ cp .env.example .env
 composer install
 php artisan key:generate
 php artisan migrate --seed
+
+# Default seeded admin credentials
+# Email: superadmin@nexa-mfg.com
+# Password: superadmin123
+
 php artisan serve
 ```
 

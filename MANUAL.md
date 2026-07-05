@@ -4,7 +4,7 @@
 Nexa-Inv is an enterprise inventory and manufacturing platform. This manual covers core usage and workflows for typical users.
 
 ## Getting Started
-- Login using your credentials.
+- Login using your credentials. For a fresh seeded install, use `superadmin@nexa-mfg.com` / `superadmin123` or `admin@nexa-mfg.com` / `password`.
 - Select company and branch if applicable.
 - Choose role-appropriate workspace (menu will show permitted modules).
 
@@ -32,7 +32,7 @@ Nexa-Inv is an enterprise inventory and manufacturing platform. This manual cove
 - QC: quality inspections and approvals.
 
 ## Troubleshooting
-- Can't login: verify credentials, check account lock, contact admin.
+- Can't login: verify credentials (default seeded admin is `superadmin@nexa-mfg.com` / `superadmin123`), check account lock, contact admin.
 - Missing permission: request role change from administrator.
 - Inventory mismatch: run cycle count and generate adjustment with audit.
 

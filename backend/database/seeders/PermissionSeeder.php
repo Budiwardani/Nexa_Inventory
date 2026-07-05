@@ -29,17 +29,37 @@ class PermissionSeeder extends Seeder
         foreach ($permissions as $permission) {
             $permission['created_at'] = now();
             $permission['updated_at'] = now();
-            $id = DB::table('permissions')->insertGetId($permission);
-            
-            // Assign all permissions to Super Admin
-            $superAdminId = DB::table('roles')->where('name', 'Super Admin')->value('id');
-            if ($superAdminId) {
-                DB::table('role_permissions')->insert([
-                    'role_id' => $superAdminId,
-                    'permission_id' => $id,
+
+            DB::table('permissions')->updateOrInsert(
+                ['name' => $permission['name']],
+                [
+                    'module' => $permission['module'],
+                    'description' => $permission['description'],
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ]
+            );
+
+            $permissionId = DB::table('permissions')
+                ->where('name', $permission['name'])
+                ->value('id');
+
+            // Assign all permissions to Super Admin
+            $superAdminId = DB::table('roles')->where('name', 'Super Admin')->value('id');
+            if ($superAdminId && $permissionId) {
+                $exists = DB::table('role_permissions')
+                    ->where('role_id', $superAdminId)
+                    ->where('permission_id', $permissionId)
+                    ->exists();
+
+                if (! $exists) {
+                    DB::table('role_permissions')->insert([
+                        'role_id' => $superAdminId,
+                        'permission_id' => $permissionId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         }
     }

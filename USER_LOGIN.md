@@ -4,12 +4,16 @@
 Describe API endpoints and frontend behaviour for user authentication.
 
 ## API Endpoints (recommended)
-- `POST /api/v1/auth/login` — request: `{ email, password, remember }` — response: `{ success, message, data: { token, user } }`
-- `POST /api/v1/auth/logout` — invalidates token/session
-- `GET /api/v1/auth/me` — returns current user profile
+- `POST /api/v1/login` — request: `{ email, password, remember }` — response: `{ success, message, data: { token, user } }`
+- `POST /api/v1/logout` — invalidates token/session
+- `GET /api/v1/me` — returns current user profile
 - `POST /api/v1/auth/refresh` — refreshes access token (if using JWT)
 - `POST /api/v1/auth/password/forgot` — request password reset
 - `POST /api/v1/auth/password/reset` — reset password
+
+## Default Seeded Admin Users
+- `superadmin@nexa-mfg.com` / `superadmin123`
+- `admin@nexa-mfg.com` / `password`
 
 ## Authentication Notes
 - Use Laravel Sanctum or JWT for token-based APIs.
@@ -21,7 +25,7 @@ Describe API endpoints and frontend behaviour for user authentication.
 ## Frontend (React) — Login Flow
 1. Login form fields: `email`, `password`, `remember`.
 2. Client-side validation with React Hook Form + Zod.
-3. Submit to `POST /api/v1/auth/login` using API hook (TanStack Query).
+3. Submit to `POST /api/v1/login` using API hook (TanStack Query).
 4. On success: store token securely (memory/store + httpOnly cookie for refresh), redirect to dashboard.
 5. On failure: show error messages from `errors` object.
 

@@ -52,6 +52,10 @@ php artisan key:generate
 php artisan migrate --seed
 ```
 
+By default, seeding creates a Super Administrator account:
+- Email: `superadmin@nexa-mfg.com`
+- Password: `superadmin123`
+
 4. Start the backend dev server:
 
 ```bash

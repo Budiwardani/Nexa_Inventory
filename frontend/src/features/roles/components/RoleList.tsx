@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getRoles, getAllPermissions, createRole, updateRole, deleteRole, Role, Permission } from '../api/rolesApi';
+import { getRoles, getAllPermissions, createRole, updateRole, deleteRole } from '../api/rolesApi';
+import type { Role, Permission } from '../api/rolesApi';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

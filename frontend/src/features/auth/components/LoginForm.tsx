@@ -50,53 +50,74 @@ export const LoginForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-xl bg-card border-border/50">
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold tracking-tight">Nexa-MFG</CardTitle>
-        <CardDescription>Enter your email and password to sign in</CardDescription>
+    <Card className="w-full max-w-md overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-2xl shadow-slate-950/10 backdrop-blur-xl dark:border-slate-800/70 dark:bg-slate-950/95">
+      <CardHeader className="space-y-4 px-8 pt-10 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sky-500/10 text-sky-600 shadow-sm shadow-sky-500/20 dark:text-sky-300">
+          <span className="text-lg font-semibold">NM</span>
+        </div>
+        <CardTitle className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Nexa-MFG</CardTitle>
+        <CardDescription className="text-sm text-slate-600 dark:text-slate-400">
+          Sign in to continue to your manufacturing control center.
+        </CardDescription>
       </CardHeader>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5 px-8 pt-6 pb-4">
           {form.formState.errors.root && (
-            <div className="p-3 text-sm text-destructive-foreground bg-destructive/90 rounded-md">
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200" role="alert" aria-live="assertive">
               {form.formState.errors.root.message}
             </div>
           )}
-          
-          <div className="space-y-2">
+
+          <div className="space-y-3">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="admin@nexa-mfg.com"
+              autoComplete="username"
+              placeholder="superadmin@nexa-mfg.com"
               {...form.register('email')}
-              className={form.formState.errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
+              className={form.formState.errors.email ? 'border-red-400 ring-red-100 focus:border-red-500 focus:ring-red-100' : ''}
             />
             {form.formState.errors.email && (
-              <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+              <p className="text-xs text-red-600 dark:text-red-300">{form.formState.errors.email.message}</p>
             )}
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-4">
               <Label htmlFor="password">Password</Label>
-              <a href="#" className="text-xs text-primary hover:underline">Forgot password?</a>
+              <a href="/forgot-password" className="text-sm text-sky-600 hover:text-sky-700 dark:text-sky-300 dark:hover:text-sky-200">
+                Forgot password?
+              </a>
             </div>
             <Input
               id="password"
               type="password"
+              autoComplete="current-password"
+              placeholder="Enter your password"
               {...form.register('password')}
-              className={form.formState.errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}
+              className={form.formState.errors.password ? 'border-red-400 ring-red-100 focus:border-red-500 focus:ring-red-100' : ''}
             />
             {form.formState.errors.password && (
-              <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
+              <p className="text-xs text-red-600 dark:text-red-300">{form.formState.errors.password.message}</p>
             )}
           </div>
+
+          <div className="flex items-center justify-between gap-4 text-sm text-slate-600 dark:text-slate-400">
+            <label className="inline-flex items-center gap-2 text-slate-800 dark:text-slate-200">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 dark:border-slate-600"
+              />
+              Remember me
+            </label>
+            <span className="italic">Need help? contact support</span>
+          </div>
         </CardContent>
-        <CardFooter>
-          <Button 
-            type="submit" 
-            className="w-full" 
+        <CardFooter className="px-8 pb-10 pt-0">
+          <Button
+            type="submit"
+            className="w-full"
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? 'Signing in...' : 'Sign in'}

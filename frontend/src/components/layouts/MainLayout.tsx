@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
-import { LogOut, Home, Users, Settings, Package, Factory, BarChart } from 'lucide-react';
+import { LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck } from 'lucide-react';
 
 export const MainLayout = () => {
   const navigate = useNavigate();
@@ -30,19 +30,20 @@ export const MainLayout = () => {
         
         <div className="flex-1 overflow-y-auto py-4">
           <nav className="space-y-1 px-3">
-            <NavItem icon={<Home size={18} />} label="Dashboard" active />
+            <NavItem icon={<Home size={18} />} label="Dashboard" to="/" />
             <div className="pt-4 pb-2 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Modules
             </div>
-            <NavItem icon={<Factory size={18} />} label="Production" />
-            <NavItem icon={<Package size={18} />} label="Inventory" />
-            <NavItem icon={<BarChart size={18} />} label="Analytics" />
+            <NavItem icon={<Factory size={18} />} label="Production" to="#" />
+            <NavItem icon={<Package size={18} />} label="Inventory" to="#" />
+            <NavItem icon={<BarChart size={18} />} label="Analytics" to="#" />
             
             <div className="pt-4 pb-2 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Administration
             </div>
-            <NavItem icon={<Users size={18} />} label="Users & Roles" />
-            <NavItem icon={<Settings size={18} />} label="Settings" />
+            <NavItem icon={<Users size={18} />} label="Users" to="/users" />
+            <NavItem icon={<ShieldCheck size={18} />} label="Roles & Permissions" to="/roles" />
+            <NavItem icon={<Settings size={18} />} label="Settings" to="#" />
           </nav>
         </div>
 
@@ -80,10 +81,10 @@ export const MainLayout = () => {
   );
 };
 
-const NavItem = ({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) => {
+const NavItem = ({ icon, label, to = "#", active = false }: { icon: React.ReactNode, label: string, to?: string, active?: boolean }) => {
   return (
     <a
-      href="#"
+      href={to}
       className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
         active 
           ? 'bg-primary/10 text-primary font-medium' 

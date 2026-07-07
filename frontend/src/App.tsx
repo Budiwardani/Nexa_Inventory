@@ -4,11 +4,7 @@ import React, { Suspense } from 'react';
 const LoginPage = React.lazy(() => import('./features/auth/routes/LoginPage').then(m => ({ default: m.LoginPage })));
 const MainLayout = React.lazy(() => import('./components/layouts/MainLayout').then(m => ({ default: m.MainLayout })));
 const DashboardPage = React.lazy(() => import('./features/dashboard/routes/DashboardPage').then(m => ({ default: m.DashboardPage })));
-const ProductionPage = React.lazy(() => import('./features/common/routes/ModulePage').then(m => ({ default: () => <m.ModulePage title="Production" description="Manage production workflow, orders, and manufacturing execution according to the business rules." highlights={[
-  'Every production order must have approval workflow.',
-  'Production cannot complete before QC and inventory update.',
-  'Material availability is validated before release.',
-]}/> })));
+const ProductionPage = React.lazy(() => import('./features/production/routes/ProductionPage').then(m => ({ default: m.ProductionPage })));
 const BOMPage = React.lazy(() => import('./features/bom/routes/BOMPage').then(m => ({ default: m.BOMPage })));
 const RoutingPage = React.lazy(() => import('./features/routing/routes/RoutingPage').then(m => ({ default: m.RoutingPage })));
 const WorkOrderPageReal = React.lazy(() => import('./features/work-order/routes/WorkOrderPage').then(m => ({ default: m.WorkOrderPage })));

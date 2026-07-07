@@ -20,6 +20,9 @@ Route::middleware('api')->prefix('v1')->group(function () {
 
         // Manufacturing Modules
         Route::apiResource('/production-orders', \App\Modules\Core\Presentation\Controllers\ProductionOrderController::class);
+        Route::post('/production-orders/{id}/approve', [\App\Modules\Core\Presentation\Controllers\ProductionOrderController::class, 'approve']);
+        Route::post('/production-orders/{id}/release', [\App\Modules\Core\Presentation\Controllers\ProductionOrderController::class, 'release']);
+        Route::post('/production-orders/{id}/complete', [\App\Modules\Core\Presentation\Controllers\ProductionOrderController::class, 'complete']);
         Route::apiResource('/boms', \App\Modules\Core\Presentation\Controllers\BomController::class);
         Route::apiResource('/routings', \App\Modules\Core\Presentation\Controllers\RoutingController::class);
         Route::apiResource('/work-orders', \App\Modules\Core\Presentation\Controllers\WorkOrderController::class);

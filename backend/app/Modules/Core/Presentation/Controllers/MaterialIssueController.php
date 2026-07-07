@@ -64,6 +64,28 @@ class MaterialIssueController extends Controller
                 ]);
             }
 
+            // Post Journal Entry for Material Issue (Debit WIP, Credit Inventory)
+            // Assuming standard account codes for demonstration: 
+            // 11400 (Inventory), 11500 (WIP)
+            // We use a dummy cost of $10 per unit for the demo if unit cost is unknown
+            $totalCost = collect($validated['items'])->sum(function($item) {
+                return ($item['issued_qty'] ?? 0) * 10; 
+            });
+
+            if ($totalCost > 0) {
+                $accounting = app(\App\Modules\Core\Services\AccountingService::class);
+                $accounting->postJournalEntry([
+                    'journal_date' => $header->issue_date,
+                    'reference_type' => 'MaterialIssue',
+                    'reference_id' => $header->id,
+                    'description' => 'Material Issue for Production',
+                    'entries' => [
+                        ['account_code' => '11500', 'debit' => $totalCost, 'credit' => 0, 'department' => 'Production'], // Debit WIP
+                        ['account_code' => '11400', 'debit' => 0, 'credit' => $totalCost, 'department' => 'Warehouse'],  // Credit Inventory
+                    ]
+                ]);
+            }
+
             DB::commit();
 
             return response()->json([

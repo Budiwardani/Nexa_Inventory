@@ -57,6 +57,20 @@ class FinishedGoodsController extends Controller
             'status' => 'Draft',
         ]);
 
+        if ($totalCost > 0) {
+            $accounting = app(\App\Modules\Core\Services\AccountingService::class);
+            $accounting->postJournalEntry([
+                'journal_date' => $receipt->receipt_date,
+                'reference_type' => 'FinishedGoodsReceipt',
+                'reference_id' => $receipt->id,
+                'description' => 'Finished Goods Receipt from Production',
+                'entries' => [
+                    ['account_code' => '11400', 'debit' => $totalCost, 'credit' => 0, 'department' => 'Warehouse'], // Debit Inventory
+                    ['account_code' => '11500', 'debit' => 0, 'credit' => $totalCost, 'department' => 'Production'], // Credit WIP
+                ]
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Finished Goods Receipt created',

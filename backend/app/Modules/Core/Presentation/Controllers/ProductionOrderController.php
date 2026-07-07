@@ -60,4 +60,36 @@ class ProductionOrderController extends Controller
             'data' => new ProductionOrderResource($order),
         ]);
     }
+
+    public function approve(int $id, Request $request): JsonResponse
+    {
+        try {
+            // In a real app, $request->user()->id would be used. Using 1 for simplicity if no auth.
+            $userId = $request->user() ? $request->user()->id : 1;
+            $order = $this->productionOrderService->approve($id, $userId);
+            return response()->json(['success' => true, 'data' => new ProductionOrderResource($order)]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function release(int $id): JsonResponse
+    {
+        try {
+            $order = $this->productionOrderService->release($id);
+            return response()->json(['success' => true, 'data' => new ProductionOrderResource($order)]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function complete(int $id): JsonResponse
+    {
+        try {
+            $order = $this->productionOrderService->complete($id);
+            return response()->json(['success' => true, 'data' => new ProductionOrderResource($order)]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
 }

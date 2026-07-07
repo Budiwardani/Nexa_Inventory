@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
+import { useGetSettings } from '@/features/phase3/api/phase3Api';
 import {
   LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
   FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell,
@@ -87,12 +88,17 @@ export const MainLayout = () => {
     },
   ];
 
+  const { data: settings } = useGetSettings();
+  const appName = settings?.find((s: any) => s.key === 'app_name')?.value || 'Nexa-MFG';
+  const appLogo = settings?.find((s: any) => s.key === 'app_logo_url')?.value;
+
   return (
     <div className="flex h-screen bg-zinc-100 dark:bg-zinc-950">
       {/* Sidebar */}
       <aside className="w-80 bg-card border-r border-border/50 flex flex-col hidden md:flex">
-        <div className="h-16 flex items-center px-6 border-b border-border/50">
-          <h1 className="text-xl font-bold tracking-tight text-primary">Nexa-MFG</h1>
+        <div className="h-16 flex items-center px-6 border-b border-border/50 gap-2">
+          {appLogo && <img src={appLogo} alt="Logo" className="h-8 w-8 object-contain" />}
+          <h1 className="text-xl font-bold tracking-tight text-primary">{appName}</h1>
         </div>
         
         <div className="flex-1 overflow-y-auto py-4">
@@ -135,7 +141,10 @@ export const MainLayout = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 bg-card border-b border-border/50 flex items-center justify-between px-6 md:hidden">
-          <h1 className="text-xl font-bold text-primary">Nexa-MFG</h1>
+          <div className="flex items-center gap-2">
+            {appLogo && <img src={appLogo} alt="Logo" className="h-8 w-8 object-contain" />}
+            <h1 className="text-xl font-bold text-primary">{appName}</h1>
+          </div>
           <Button variant="ghost" size="icon">
             <LogOut className="h-5 w-5" onClick={handleLogout} />
           </Button>

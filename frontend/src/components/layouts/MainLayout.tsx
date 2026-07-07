@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { useGetSettings } from '@/features/phase3/api/phase3Api';
 import {
   LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
-  FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell,
+  FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell, Paintbrush,
 } from 'lucide-react';
 
 export const MainLayout = () => {
@@ -83,6 +83,7 @@ export const MainLayout = () => {
       items: [
         { icon: <Users size={18} />, label: 'Users', to: '/users' },
         { icon: <ShieldCheck size={18} />, label: 'Roles & Permissions', to: '/roles' },
+        { icon: <Paintbrush size={18} />, label: 'Client Branding', to: '/branding' },
         { icon: <Settings size={18} />, label: 'Settings', to: '/settings' },
       ],
     },
@@ -91,14 +92,24 @@ export const MainLayout = () => {
   const { data: settings } = useGetSettings();
   const appName = (settings?.find((s: any) => s.key === 'app_name') as any)?.value || 'Nexa-MFG';
   const appLogo = (settings?.find((s: any) => s.key === 'app_logo_url') as any)?.value;
+  const clientName = (settings?.find((s: any) => s.key === 'client_name') as any)?.value;
 
   return (
     <div className="flex h-screen bg-zinc-100 dark:bg-zinc-950">
       {/* Sidebar */}
       <aside className="w-80 bg-card border-r border-border/50 flex flex-col hidden md:flex">
-        <div className="h-16 flex items-center px-6 border-b border-border/50 gap-2">
-          {appLogo && <img src={appLogo} alt="Logo" className="h-8 w-8 object-contain" />}
-          <h1 className="text-xl font-bold tracking-tight text-primary">{appName}</h1>
+        <div className="h-auto min-h-16 flex items-center px-6 border-b border-border/50 gap-3 py-3">
+          {appLogo ? (
+            <img src={appLogo} alt="Logo" className="h-9 w-9 object-contain rounded-md flex-shrink-0" />
+          ) : (
+            <div className="h-9 w-9 rounded-md bg-primary/15 flex items-center justify-center text-primary font-bold text-lg flex-shrink-0">
+              {appName.charAt(0)}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-base font-bold tracking-tight text-primary leading-tight truncate">{appName}</h1>
+            {clientName && <p className="text-xs text-muted-foreground truncate">{clientName}</p>}
+          </div>
         </div>
         
         <div className="flex-1 overflow-y-auto py-4">

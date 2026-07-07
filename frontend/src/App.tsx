@@ -37,6 +37,7 @@ const NotificationPage = React.lazy(() => import('./features/notifications/route
 const UsersPage = React.lazy(() => import('./features/users/routes/UsersPage').then(m => ({ default: m.UsersPage })));
 const RolesPage = React.lazy(() => import('./features/roles/routes/RolesPage').then(m => ({ default: m.RolesPage })));
 const SettingsPage = React.lazy(() => import('./features/settings/routes/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const BrandingPage = React.lazy(() => import('./features/branding/routes/BrandingPage').then(m => ({ default: m.BrandingPage })));
 
 function App() {
   const isAuthenticated = !!localStorage.getItem('auth_token');
@@ -75,6 +76,7 @@ function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="roles" element={<RolesPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="branding" element={<BrandingPage />} />
         </Route>
 
         <Route

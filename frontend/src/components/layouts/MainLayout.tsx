@@ -89,8 +89,8 @@ export const MainLayout = () => {
   ];
 
   const { data: settings } = useGetSettings();
-  const appName = settings?.find((s: any) => s.key === 'app_name')?.value || 'Nexa-MFG';
-  const appLogo = settings?.find((s: any) => s.key === 'app_logo_url')?.value;
+  const appName = (settings?.find((s: any) => s.key === 'app_name') as any)?.value || 'Nexa-MFG';
+  const appLogo = (settings?.find((s: any) => s.key === 'app_logo_url') as any)?.value;
 
   return (
     <div className="flex h-screen bg-zinc-100 dark:bg-zinc-950">

@@ -1,7 +1,26 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Factory, PackageCheck, AlertTriangle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+
+interface DashboardMetrics {
+  total_users: number;
+  total_work_orders: number;
+  active_work_orders: number;
+  total_production_orders: number;
+  inventory_value: number;
+  total_inventory_items: number;
+}
 
 export const Dashboard = () => {
+  const { data: metrics, isLoading } = useQuery({
+    queryKey: ['dashboard-metrics'],
+    queryFn: async () => {
+      const res = await api.get('/dashboard/metrics');
+      return res.data.data as DashboardMetrics;
+    }
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -10,10 +29,26 @@ export const Dashboard = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Employees" value="1,245" icon={<Users className="h-5 w-5 text-blue-500" />} />
-        <StatCard title="Active Production" value="34 Orders" icon={<Factory className="h-5 w-5 text-orange-500" />} />
-        <StatCard title="Products Shipped" value="8,943" icon={<PackageCheck className="h-5 w-5 text-green-500" />} />
-        <StatCard title="Quality Alerts" value="2 Critical" icon={<AlertTriangle className="h-5 w-5 text-destructive" />} />
+        <StatCard 
+          title="Total Employees" 
+          value={isLoading ? '...' : metrics?.total_users?.toString() || '0'} 
+          icon={<Users className="h-5 w-5 text-blue-500" />} 
+        />
+        <StatCard 
+          title="Active Production" 
+          value={isLoading ? '...' : `${metrics?.active_work_orders || 0} Orders`} 
+          icon={<Factory className="h-5 w-5 text-orange-500" />} 
+        />
+        <StatCard 
+          title="Inventory Items" 
+          value={isLoading ? '...' : metrics?.total_inventory_items?.toString() || '0'} 
+          icon={<PackageCheck className="h-5 w-5 text-green-500" />} 
+        />
+        <StatCard 
+          title="Inventory Value" 
+          value={isLoading ? '...' : `$${(metrics?.inventory_value || 0).toFixed(2)}`} 
+          icon={<AlertTriangle className="h-5 w-5 text-primary" />} 
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">

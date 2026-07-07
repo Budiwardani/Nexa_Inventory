@@ -1,0 +1,188 @@
+import { useMemo, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Trash2, Plus, X } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+
+const useGetMaterialIssues = (page = 1) => useQuery({
+  queryKey: ['material-issues', page],
+  queryFn: async () => (await api.get(`/material-issues?page=${page}`)).data,
+});
+
+const useCreateMaterialIssue = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: any) => (await api.post('/material-issues', data)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['material-issues'] }),
+  });
+};
+
+export function MaterialIssuePage() {
+  const { data, isLoading } = useGetMaterialIssues();
+  const createMutation = useCreateMaterialIssue();
+
+  const issues = useMemo(() => (data?.success ? data.data : []), [data]);
+
+  const [open, setOpen] = useState(false);
+  const [header, setHeader] = useState({ issue_date: new Date().toISOString().split('T')[0], warehouse: '', notes: '' });
+  const [items, setItems] = useState([{ material_code: '', material_name: '', required_qty: 0, issued_qty: 0, uom: 'PCS' }]);
+
+  const handleAddItem = () => {
+    setItems(prev => [...prev, { material_code: '', material_name: '', required_qty: 0, issued_qty: 0, uom: 'PCS' }]);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleItemChange = (index: number, field: string, value: string | number) => {
+    setItems(prev => {
+      const newItems = [...prev];
+      newItems[index] = { ...newItems[index], [field]: value };
+      return newItems;
+    });
+  };
+
+  const handleSubmit = () => {
+    createMutation.mutate({
+      ...header,
+      items
+    }, {
+      onSuccess: () => {
+        setOpen(false);
+        setHeader({ issue_date: new Date().toISOString().split('T')[0], warehouse: '', notes: '' });
+        setItems([{ material_code: '', material_name: '', required_qty: 0, issued_qty: 0, uom: 'PCS' }]);
+      }
+    });
+  };
+
+  if (isLoading) return <div className="p-8">Loading Material Issues...</div>;
+
+  return (
+    <div className="p-8 max-w-7xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Material Issue</h1>
+          <p className="text-muted-foreground mt-2">Issue materials from warehouse to production floor.</p>
+        </div>
+        <Button onClick={() => setOpen(true)}>
+          <Plus className="w-4 h-4 mr-1" /> New Material Issue
+        </Button>
+      </div>
+
+      <div className="grid gap-4">
+        {issues.length === 0 ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground">No Material Issues found. Click "New Material Issue" to create one.</CardContent></Card>
+        ) : (
+          issues.map((issue: any) => (
+            <Card key={issue.id}>
+              <CardHeader className="pb-3 border-b">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg">{issue.mi_no}</CardTitle>
+                    <CardDescription className="mt-1">
+                      Issue Date: {issue.issue_date} | Warehouse: {issue.warehouse || '—'}
+                    </CardDescription>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">{issue.status}</span>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+                    <tr>
+                      <th className="px-4 py-2 text-left">Material Code</th>
+                      <th className="px-4 py-2 text-left">Material Name</th>
+                      <th className="px-4 py-2 text-left">Required Qty</th>
+                      <th className="px-4 py-2 text-left">Issued Qty</th>
+                      <th className="px-4 py-2 text-left">UOM</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(issue.items || []).map((item: any) => (
+                      <tr key={item.id} className="border-b">
+                        <td className="px-4 py-2 font-mono text-sm">{item.material_code}</td>
+                        <td className="px-4 py-2 font-medium">{item.material_name}</td>
+                        <td className="px-4 py-2">{item.required_qty}</td>
+                        <td className="px-4 py-2">{item.issued_qty}</td>
+                        <td className="px-4 py-2">{item.uom}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>New Material Issue</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label>Issue Date *</Label>
+                <Input type="date" value={header.issue_date} onChange={e => setHeader({...header, issue_date: e.target.value})} />
+              </div>
+              <div>
+                <Label>Warehouse</Label>
+                <Input placeholder="e.g. WH-RAW" value={header.warehouse} onChange={e => setHeader({...header, warehouse: e.target.value})} />
+              </div>
+              <div className="sm:col-span-2">
+                <Label>Notes</Label>
+                <Input placeholder="Optional remarks" value={header.notes} onChange={e => setHeader({...header, notes: e.target.value})} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-sm font-semibold">Issue Items</h3>
+                <Button variant="outline" size="sm" onClick={handleAddItem}><Plus className="w-4 h-4 mr-1" /> Add Row</Button>
+              </div>
+              <div className="rounded-md border">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b text-xs text-gray-500 uppercase">
+                    <tr>
+                      <th className="px-2 py-2">Material Code</th>
+                      <th className="px-2 py-2">Material Name</th>
+                      <th className="px-2 py-2 w-24">Req Qty</th>
+                      <th className="px-2 py-2 w-24">Issue Qty</th>
+                      <th className="px-2 py-2 w-24">UOM</th>
+                      <th className="px-2 py-2 w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, idx) => (
+                      <tr key={idx} className="border-b last:border-0">
+                        <td className="p-2"><Input value={item.material_code} onChange={e => handleItemChange(idx, 'material_code', e.target.value)} /></td>
+                        <td className="p-2"><Input value={item.material_name} onChange={e => handleItemChange(idx, 'material_name', e.target.value)} /></td>
+                        <td className="p-2"><Input type="number" value={item.required_qty} onChange={e => handleItemChange(idx, 'required_qty', Number(e.target.value))} /></td>
+                        <td className="p-2"><Input type="number" value={item.issued_qty} onChange={e => handleItemChange(idx, 'issued_qty', Number(e.target.value))} /></td>
+                        <td className="p-2"><Input value={item.uom} onChange={e => handleItemChange(idx, 'uom', e.target.value)} /></td>
+                        <td className="p-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(idx)} className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}><X className="w-4 h-4 mr-1"/> Cancel</Button>
+            <Button onClick={handleSubmit} disabled={createMutation.isPending}>{createMutation.isPending ? 'Saving...' : 'Save Issue'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+

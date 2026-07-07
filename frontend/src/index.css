@@ -97,6 +97,8 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
     font-feature-settings: "rlig" 1, "calt" 1;
     background-image: radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 24%),
       radial-gradient(circle at bottom right, rgba(168,85,247,0.1), transparent 24%);

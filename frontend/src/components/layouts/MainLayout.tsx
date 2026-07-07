@@ -1,7 +1,10 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
-import { LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck } from 'lucide-react';
+import {
+  LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
+  FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell,
+} from 'lucide-react';
 
 export const MainLayout = () => {
   const navigate = useNavigate();
@@ -22,41 +25,56 @@ export const MainLayout = () => {
 
   const sections = [
     {
-      title: 'Modules',
+      title: 'Main',
       items: [
         { icon: <Home size={18} />, label: 'Dashboard', to: '/' },
+      ],
+    },
+    {
+      title: 'Production',
+      items: [
         {
           icon: <Factory size={18} />,
           label: 'Production',
           to: '/production',
           children: [
-            { icon: <Factory size={18} />, label: 'BOM', to: '/bom' },
-            { icon: <Factory size={18} />, label: 'Routing', to: '/routing' },
-            { icon: <Factory size={18} />, label: 'Production Order', to: '/production-order' },
-            { icon: <Factory size={18} />, label: 'Work Order', to: '/work-order' },
+            { icon: <ClipboardList size={16} />, label: 'BOM', to: '/bom' },
+            { icon: <ClipboardList size={16} />, label: 'Routing', to: '/routing' },
+            { icon: <Factory size={16} />, label: 'Production Order', to: '/production-order' },
+            { icon: <Factory size={16} />, label: 'Work Order', to: '/work-order' },
           ],
         },
-        { icon: <Package size={18} />, label: 'Inventory', to: '/inventory' },
         {
           icon: <Package size={18} />,
-          label: 'Transactions',
-          to: '/material-issue',
+          label: 'Inventory',
+          to: '/inventory',
           children: [
-            { icon: <Package size={18} />, label: 'Material Issue', to: '/material-issue' },
-            { icon: <Package size={18} />, label: 'Material Return', to: '/material-return' },
-            { icon: <Package size={18} />, label: 'Finished Goods', to: '/finished-goods' },
+            { icon: <Package size={16} />, label: 'Material Issue', to: '/material-issue' },
+            { icon: <Package size={16} />, label: 'Material Return', to: '/material-return' },
+            { icon: <Package size={16} />, label: 'Finished Goods', to: '/finished-goods' },
           ],
         },
-        { icon: <BarChart size={18} />, label: 'Analytics', to: '/analytics' },
-        { icon: <BarChart size={18} />, label: 'Quality Control', to: '/quality-control' },
-        { icon: <BarChart size={18} />, label: 'Scrap Management', to: '/scrap-management' },
-        { icon: <BarChart size={18} />, label: 'Rework', to: '/rework' },
-        { icon: <BarChart size={18} />, label: 'Machine Maintenance', to: '/maintenance' },
-        { icon: <BarChart size={18} />, label: 'Machine Downtime', to: '/downtime' },
+      ],
+    },
+    {
+      title: 'Quality & Machines',
+      items: [
+        { icon: <FlaskConical size={18} />, label: 'Quality Control', to: '/quality-control' },
+        { icon: <FlaskConical size={18} />, label: 'Scrap Management', to: '/scrap-management' },
+        { icon: <FlaskConical size={18} />, label: 'Rework', to: '/rework' },
+        { icon: <Cpu size={18} />, label: 'Machines', to: '/machines' },
+        { icon: <Wrench size={18} />, label: 'Maintenance', to: '/maintenance' },
+        { icon: <Wrench size={18} />, label: 'Downtime', to: '/downtime' },
+      ],
+    },
+    {
+      title: 'Planning & Finance',
+      items: [
         { icon: <BarChart size={18} />, label: 'Capacity Planning', to: '/capacity-planning' },
-        { icon: <BarChart size={18} />, label: 'Costing', to: '/costing' },
-        { icon: <BarChart size={18} />, label: 'Accounting', to: '/accounting' },
-        { icon: <BarChart size={18} />, label: 'Notifications', to: '/notifications' },
+        { icon: <DollarSign size={18} />, label: 'Costing', to: '/costing' },
+        { icon: <DollarSign size={18} />, label: 'Accounting', to: '/accounting' },
+        { icon: <BarChart size={18} />, label: 'Analytics', to: '/analytics' },
+        { icon: <Bell size={18} />, label: 'Notifications', to: '/notifications' },
       ],
     },
     {

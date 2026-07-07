@@ -6,9 +6,11 @@ use Illuminate\Support\ServiceProvider;
 use App\Modules\Core\Repositories\Contracts\UserRepositoryInterface;
 use App\Modules\Core\Repositories\Contracts\RoleRepositoryInterface;
 use App\Modules\Core\Repositories\Contracts\PermissionRepositoryInterface;
+use App\Modules\Core\Repositories\Contracts\ProductionOrderRepositoryInterface;
 use App\Modules\Core\Repositories\Eloquent\EloquentUserRepository;
 use App\Modules\Core\Repositories\Eloquent\EloquentRoleRepository;
 use App\Modules\Core\Repositories\Eloquent\EloquentPermissionRepository;
+use App\Modules\Core\Repositories\Eloquent\EloquentProductionOrderRepository;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,11 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->bind(
             PermissionRepositoryInterface::class,
             EloquentPermissionRepository::class
+        );
+
+        $this->app->bind(
+            ProductionOrderRepositoryInterface::class,
+            EloquentProductionOrderRepository::class
         );
     }
 

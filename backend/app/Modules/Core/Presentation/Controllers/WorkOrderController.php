@@ -8,9 +8,25 @@ use App\Modules\Core\Domain\Models\WorkOrderOperation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Core\Domain\Models\AuditLog;
 
 class WorkOrderController extends Controller
 {
+    private function log(Request $request, string $event, int $modelId, array $old = [], array $new = []): void
+    {
+        AuditLog::create([
+            'user_id'        => $request->user()?->id,
+            'event'          => $event,
+            'auditable_type' => 'WorkOrder',
+            'auditable_id'   => $modelId,
+            'old_values'     => json_encode($old),
+            'new_values'     => json_encode($new),
+            'url'            => $request->fullUrl(),
+            'ip_address'     => $request->ip(),
+            'user_agent'     => $request->userAgent(),
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $workOrders = WorkOrder::with('operations')
@@ -78,6 +94,11 @@ class WorkOrderController extends Controller
 
             DB::commit();
 
+            $this->log($request, 'created', $workOrder->id, [], [
+                'product' => $workOrder->product,
+                'status' => $workOrder->status,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Work Order created successfully',
@@ -102,17 +123,28 @@ class WorkOrderController extends Controller
         $wo = WorkOrder::find($id);
         if (!$wo) return response()->json(['success' => false, 'message' => 'Not found'], 404);
 
+        $old = $wo->only(['status', 'actual_start', 'actual_end', 'completed_qty', 'reject_qty', 'notes']);
         $wo->update($request->only(['status', 'actual_start', 'actual_end', 'completed_qty', 'reject_qty', 'notes']));
+
+        $this->log($request, 'updated', $wo->id, $old, $wo->only(['status', 'actual_start', 'actual_end', 'completed_qty', 'reject_qty', 'notes']));
 
         return response()->json(['success' => true, 'message' => 'Work Order updated', 'data' => $wo]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id, Request $request): JsonResponse
     {
         $wo = WorkOrder::find($id);
         if (!$wo) return response()->json(['success' => false, 'message' => 'Not found'], 404);
 
+        if (!in_array($wo->status, ['Draft', 'Pending'])) {
+            return response()->json(['success' => false, 'message' => 'Cannot delete work order in current status'], 400);
+        }
+
+        $oldStatus = $wo->status;
         $wo->delete();
+
+        $this->log($request, 'deleted', $id, ['status' => $oldStatus], []);
+
         return response()->json(['success' => true, 'message' => 'Work Order deleted']);
     }
 }

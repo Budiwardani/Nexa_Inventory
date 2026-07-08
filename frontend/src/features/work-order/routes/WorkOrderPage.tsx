@@ -21,6 +21,14 @@ const useCreateWorkOrder = () => {
   });
 };
 
+const useDeleteWorkOrder = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => (await api.delete(`/work-orders/${id}`)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['work-orders'] }),
+  });
+};
+
 const statusColors: Record<string, string> = {
   Draft: 'bg-gray-100 text-gray-700',
   Released: 'bg-blue-100 text-blue-700',
@@ -32,6 +40,7 @@ const statusColors: Record<string, string> = {
 export function WorkOrderPage() {
   const { data, isLoading } = useGetWorkOrders();
   const createMutation = useCreateWorkOrder();
+  const deleteMutation = useDeleteWorkOrder();
 
   const workOrders = useMemo(() => (data?.success ? data.data : []), [data]);
 
@@ -96,9 +105,18 @@ export function WorkOrderPage() {
                       {wo.product} | Target: {wo.target_qty} {wo.uom} | Work Center: {wo.work_center || '—'}
                     </CardDescription>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[wo.status] || 'bg-gray-100 text-gray-700'}`}>
-                    {wo.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[wo.status] || 'bg-gray-100 text-gray-700'}`}>
+                      {wo.status}
+                    </span>
+                    {(wo.status === 'Draft' || wo.status === 'Pending') && (
+                      <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => {
+                        if (confirm('Are you sure you want to delete this work order?')) deleteMutation.mutate(wo.id);
+                      }}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-4">

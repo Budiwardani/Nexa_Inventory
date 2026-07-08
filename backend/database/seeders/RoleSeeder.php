@@ -13,6 +13,7 @@ class RoleSeeder extends Seeder
             ['name' => 'Super Admin', 'description' => 'System Administrator with full access'],
             ['name' => 'Plant Manager', 'description' => 'Manager of a specific manufacturing plant'],
             ['name' => 'Production Supervisor', 'description' => 'Supervisor for production lines'],
+            ['name' => 'Staff Admin', 'description' => 'Staff responsible for data entry and drafting'],
             ['name' => 'Operator', 'description' => 'Machine or line operator'],
         ];
 

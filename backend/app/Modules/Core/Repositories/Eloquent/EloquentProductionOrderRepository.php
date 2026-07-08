@@ -67,6 +67,7 @@ class EloquentProductionOrderRepository implements ProductionOrderRepositoryInte
             'operator_assignments' => $dto->operatorAssignments,
             'approved_by' => $dto->approvedBy,
             'approved_at' => $dto->approvedAt,
+            'created_by'  => $dto->createdBy,
         ]);
     }
 }

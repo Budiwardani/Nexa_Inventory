@@ -2,6 +2,7 @@
 
 namespace App\Modules\Core\Services;
 
+use App\Modules\Core\Domain\Models\Inventory;
 use App\Modules\Core\Domain\Models\ProductionOrder;
 use App\Modules\Core\DTO\ProductionOrderDTO;
 use App\Modules\Core\Repositories\Contracts\ProductionOrderRepositoryInterface;
@@ -32,15 +33,57 @@ class ProductionOrderService
         });
     }
 
+    // ─── APPROVAL WORKFLOW ──────────────────────────────────────────────────
+
     public function approve(int $id, int $userId): ProductionOrder
     {
         $order = $this->getProductionOrderById($id);
-        if (!$order) throw new \Exception('Production order not found');
+        if (!$order) throw new \Exception('Production order not found.');
 
-        $order->status = 'Approved';
+        $allowedStatuses = ['Draft', 'Submitted'];
+        if (!in_array($order->status, $allowedStatuses)) {
+            throw new \Exception("Cannot approve an order with status: {$order->status}.");
+        }
+
+        $order->status         = 'Approved';
         $order->approval_stage = 'Approved';
-        $order->approved_by = $userId;
-        $order->approved_at = now();
+        $order->approved_by    = $userId;
+        $order->approved_at    = now();
+        $order->save();
+
+        return $order;
+    }
+
+    public function reject(int $id, int $userId, string $reason = ''): ProductionOrder
+    {
+        $order = $this->getProductionOrderById($id);
+        if (!$order) throw new \Exception('Production order not found.');
+
+        $allowedStatuses = ['Draft', 'Submitted', 'Approved'];
+        if (!in_array($order->status, $allowedStatuses)) {
+            throw new \Exception("Cannot reject an order with status: {$order->status}.");
+        }
+
+        $order->status         = 'Rejected';
+        $order->approval_stage = 'Rejected';
+        $order->remarks        = $reason ?: $order->remarks;
+        $order->save();
+
+        return $order;
+    }
+
+    public function cancel(int $id, int $userId, string $reason = ''): ProductionOrder
+    {
+        $order = $this->getProductionOrderById($id);
+        if (!$order) throw new \Exception('Production order not found.');
+
+        if (in_array($order->status, ['Completed', 'Closed'])) {
+            throw new \Exception("Cannot cancel an order that is already {$order->status}.");
+        }
+
+        $order->status         = 'Cancelled';
+        $order->approval_stage = 'Cancelled';
+        $order->remarks        = $reason ?: $order->remarks;
         $order->save();
 
         return $order;
@@ -49,19 +92,21 @@ class ProductionOrderService
     public function release(int $id): ProductionOrder
     {
         $order = $this->getProductionOrderById($id);
-        if (!$order) throw new \Exception('Production order not found');
-        if ($order->status !== 'Approved') throw new \Exception('Order must be approved before release');
+        if (!$order) throw new \Exception('Production order not found.');
+        if ($order->status !== 'Approved') throw new \Exception('Order must be approved before release.');
 
         // Validate Material Availability
         $requirements = $order->material_requirements ?? [];
         foreach ($requirements as $req) {
-            $product = $req['product'] ?? null;
+            $product     = $req['product'] ?? null;
             $requiredQty = $req['qty'] ?? 0;
             if (!$product || $requiredQty <= 0) continue;
 
-            $availableQty = \App\Modules\Core\Domain\Models\Inventory::where('product', $product)->sum('qty');
+            $availableQty = Inventory::where('product', $product)->sum('qty');
             if ($availableQty < $requiredQty) {
-                throw new \Exception("Insufficient inventory for product: {$product}. Required: {$requiredQty}, Available: {$availableQty}");
+                throw new \Exception(
+                    "Insufficient inventory for product: {$product}. Required: {$requiredQty}, Available: {$availableQty}"
+                );
             }
         }
 
@@ -74,28 +119,27 @@ class ProductionOrderService
     public function complete(int $id): ProductionOrder
     {
         $order = $this->getProductionOrderById($id);
-        if (!$order) throw new \Exception('Production order not found');
+        if (!$order) throw new \Exception('Production order not found.');
 
-        // Check if there is a QC inspection passed
-        // For demonstration, we'll check if a related QC record exists. 
-        // If qc_inspections table doesn't exist yet, we check a simpler condition or bypass based on system state
-        // Let's assume QC checking relies on an external module or we can throw if not bypassed.
-        // As per requirements: "Production cannot complete before QC and inventory update."
-        
-        $hasQc = DB::table('quality_control_inspections')->where('production_order_id', $id)->where('status', 'Passed')->exists();
-        // Fallback for Phase 4 if QC table is missing (to avoid breaking the flow if not yet created):
-        if (!Schema::hasTable('quality_control_inspections')) {
-            $hasQc = true; // Bypass if table doesn't exist yet
+        // QC check
+        $hasQc = true;
+        if (Schema::hasTable('quality_control_inspections')) {
+            $hasQc = DB::table('quality_control_inspections')
+                ->where('production_order_id', $id)
+                ->where('status', 'Passed')
+                ->exists();
         }
-        
+
         if (!$hasQc) {
             throw new \Exception('Production cannot complete without a passed QC inspection.');
         }
 
-        // Inventory update check
-        $hasReceipt = DB::table('finished_goods_receipts')->where('production_order_id', $id)->exists();
-        if (!Schema::hasTable('finished_goods_receipts')) {
-            $hasReceipt = true; // Bypass if table doesn't exist yet
+        // Finished goods receipt check
+        $hasReceipt = true;
+        if (Schema::hasTable('finished_goods_receipts')) {
+            $hasReceipt = DB::table('finished_goods_receipts')
+                ->where('production_order_id', $id)
+                ->exists();
         }
 
         if (!$hasReceipt) {

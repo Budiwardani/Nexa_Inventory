@@ -26,6 +26,7 @@ readonly class ProductionOrderDTO
         public ?array $materialRequirements = [],
         public ?array $machineAssignments = [],
         public ?array $operatorAssignments = [],
+        public ?int $createdBy = null,
         public ?int $approvedBy = null,
         public ?string $approvedAt = null,
     ) {}
@@ -54,6 +55,7 @@ readonly class ProductionOrderDTO
             materialRequirements: $data['material_requirements'] ?? [],
             machineAssignments: $data['machine_assignments'] ?? [],
             operatorAssignments: $data['operator_assignments'] ?? [],
+            createdBy: $data['created_by'] ?? null,
             approvedBy: $data['approved_by'] ?? null,
             approvedAt: $data['approved_at'] ?? null,
         );

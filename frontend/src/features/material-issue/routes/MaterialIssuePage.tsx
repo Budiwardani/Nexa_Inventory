@@ -21,9 +21,18 @@ const useCreateMaterialIssue = () => {
   });
 };
 
+const useDeleteMaterialIssue = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => (await api.delete(`/material-issues/${id}`)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['material-issues'] }),
+  });
+};
+
 export function MaterialIssuePage() {
   const { data, isLoading } = useGetMaterialIssues();
   const createMutation = useCreateMaterialIssue();
+  const deleteMutation = useDeleteMaterialIssue();
 
   const issues = useMemo(() => (data?.success ? data.data : []), [data]);
 
@@ -88,7 +97,16 @@ export function MaterialIssuePage() {
                       Issue Date: {issue.issue_date} | Warehouse: {issue.warehouse || '—'}
                     </CardDescription>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">{issue.status}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">{issue.status}</span>
+                    {issue.status === 'Draft' && (
+                      <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => {
+                        if (confirm('Are you sure you want to delete this material issue?')) deleteMutation.mutate(issue.id);
+                      }}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-4">

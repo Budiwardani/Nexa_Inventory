@@ -10,9 +10,25 @@ use App\Modules\Core\Resources\RoutingResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Core\Domain\Models\AuditLog;
 
 class RoutingController extends Controller
 {
+    private function log(Request $request, string $event, int $modelId, array $old = [], array $new = []): void
+    {
+        AuditLog::create([
+            'user_id'        => $request->user()?->id,
+            'event'          => $event,
+            'auditable_type' => 'Routing',
+            'auditable_id'   => $modelId,
+            'old_values'     => json_encode($old),
+            'new_values'     => json_encode($new),
+            'url'            => $request->fullUrl(),
+            'ip_address'     => $request->ip(),
+            'user_agent'     => $request->userAgent(),
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $routings = Routing::with('operations')->paginate($request->get('per_page', 15));
@@ -53,6 +69,11 @@ class RoutingController extends Controller
             }
 
             DB::commit();
+
+            $this->log($request, 'created', $routing->id, [], [
+                'product' => $routing->product,
+                'status' => $routing->status,
+            ]);
 
             return response()->json([
                 'success' => true,

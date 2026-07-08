@@ -36,12 +36,19 @@ export const getUsers = async (page = 1, search = ''): Promise<PaginatedResponse
   return response.data;
 };
 
-export const createUser = async (data: Partial<User>): Promise<{ success: boolean; data: User }> => {
+export type UserPayload = Partial<Omit<User, 'roles'>> & {
+  password?: string;
+  password_confirmation?: string;
+  roles?: number[];
+  branch_id?: number;
+};
+
+export const createUser = async (data: UserPayload): Promise<{ success: boolean; data: User }> => {
   const response = await api.post('/users', data);
   return response.data;
 };
 
-export const updateUser = async (id: number, data: Partial<User>): Promise<{ success: boolean; data: User }> => {
+export const updateUser = async (id: number, data: UserPayload): Promise<{ success: boolean; data: User }> => {
   const response = await api.put(`/users/${id}`, data);
   return response.data;
 };

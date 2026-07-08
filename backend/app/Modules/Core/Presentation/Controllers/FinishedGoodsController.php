@@ -6,9 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Modules\Core\Domain\Models\FinishedGoodsReceipt;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Modules\Core\Domain\Models\AuditLog;
 
 class FinishedGoodsController extends Controller
 {
+    private function log(Request $request, string $event, int $modelId, array $old = [], array $new = []): void
+    {
+        AuditLog::create([
+            'user_id'        => $request->user()?->id,
+            'event'          => $event,
+            'auditable_type' => 'FinishedGoodsReceipt',
+            'auditable_id'   => $modelId,
+            'old_values'     => json_encode($old),
+            'new_values'     => json_encode($new),
+            'url'            => $request->fullUrl(),
+            'ip_address'     => $request->ip(),
+            'user_agent'     => $request->userAgent(),
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $receipts = FinishedGoodsReceipt::paginate($request->get('per_page', 15));
@@ -71,6 +87,10 @@ class FinishedGoodsController extends Controller
             ]);
         }
 
+        $this->log($request, 'created', $receipt->id, [], [
+            'status' => $receipt->status,
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Finished Goods Receipt created',
@@ -89,15 +109,29 @@ class FinishedGoodsController extends Controller
     {
         $receipt = FinishedGoodsReceipt::find($id);
         if (!$receipt) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        
+        $old = $receipt->only(['status', 'notes']);
         $receipt->update($request->only(['status', 'notes']));
+        
+        $this->log($request, 'updated', $receipt->id, $old, $receipt->only(['status', 'notes']));
+
         return response()->json(['success' => true, 'message' => 'Updated', 'data' => $receipt]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id, Request $request): JsonResponse
     {
         $receipt = FinishedGoodsReceipt::find($id);
         if (!$receipt) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+
+        if ($receipt->status !== 'Draft') {
+            return response()->json(['success' => false, 'message' => 'Only draft receipts can be deleted'], 400);
+        }
+
+        $oldStatus = $receipt->status;
         $receipt->delete();
+
+        $this->log($request, 'deleted', $id, ['status' => $oldStatus], []);
+
         return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 }

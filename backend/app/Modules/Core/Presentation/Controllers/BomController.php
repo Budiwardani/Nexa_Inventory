@@ -11,9 +11,25 @@ use App\Modules\Core\Resources\BomResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Core\Domain\Models\AuditLog;
 
 class BomController extends Controller
 {
+    private function log(Request $request, string $event, int $modelId, array $old = [], array $new = []): void
+    {
+        AuditLog::create([
+            'user_id'        => $request->user()?->id,
+            'event'          => $event,
+            'auditable_type' => 'BillOfMaterial',
+            'auditable_id'   => $modelId,
+            'old_values'     => json_encode($old),
+            'new_values'     => json_encode($new),
+            'url'            => $request->fullUrl(),
+            'ip_address'     => $request->ip(),
+            'user_agent'     => $request->userAgent(),
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $boms = BillOfMaterial::with(['activeVersion.items', 'versions'])->paginate($request->get('per_page', 15));
@@ -62,6 +78,11 @@ class BomController extends Controller
             }
 
             DB::commit();
+
+            $this->log($request, 'created', $bom->id, [], [
+                'product' => $bom->product,
+                'status' => $bom->status,
+            ]);
 
             return response()->json([
                 'success' => true,

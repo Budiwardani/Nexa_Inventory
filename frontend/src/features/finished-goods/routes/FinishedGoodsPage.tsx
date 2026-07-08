@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
@@ -21,9 +21,18 @@ const useCreateFinishedGoods = () => {
   });
 };
 
+const useDeleteFinishedGoods = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => (await api.delete(`/finished-goods/${id}`)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['finished-goods'] }),
+  });
+};
+
 export function FinishedGoodsPage() {
   const { data, isLoading } = useGetFinishedGoods();
   const createMutation = useCreateFinishedGoods();
+  const deleteMutation = useDeleteFinishedGoods();
 
   const receipts = useMemo(() => (data?.success ? data.data : []), [data]);
 
@@ -69,6 +78,7 @@ export function FinishedGoodsPage() {
                   <th className="px-4 py-3 text-right">Unit Cost</th>
                   <th className="px-4 py-3 text-right">Total Cost</th>
                   <th className="px-4 py-3 text-center">Status</th>
+                  <th className="px-4 py-3 w-10"></th>
                 </tr>
               </thead>
               <tbody>
@@ -83,6 +93,15 @@ export function FinishedGoodsPage() {
                     <td className="px-4 py-3 text-right font-semibold">{Number(r.total_cost).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>
                     <td className="px-4 py-3 text-center">
                       <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">{r.status}</span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {r.status === 'Draft' && (
+                        <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => {
+                          if (confirm('Are you sure you want to delete this receipt?')) deleteMutation.mutate(r.id);
+                        }}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))}

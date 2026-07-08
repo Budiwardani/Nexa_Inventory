@@ -10,9 +10,25 @@ use App\Modules\Core\Domain\Models\MaterialReturnItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Core\Domain\Models\AuditLog;
 
 class MaterialIssueController extends Controller
 {
+    private function log(Request $request, string $event, int $modelId, array $old = [], array $new = []): void
+    {
+        AuditLog::create([
+            'user_id'        => $request->user()?->id,
+            'event'          => $event,
+            'auditable_type' => 'MaterialIssue',
+            'auditable_id'   => $modelId,
+            'old_values'     => json_encode($old),
+            'new_values'     => json_encode($new),
+            'url'            => $request->fullUrl(),
+            'ip_address'     => $request->ip(),
+            'user_agent'     => $request->userAgent(),
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $issues = MaterialIssueHeader::with('items')
@@ -88,6 +104,10 @@ class MaterialIssueController extends Controller
 
             DB::commit();
 
+            $this->log($request, 'created', $header->id, [], [
+                'status' => $header->status,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Material Issue created',
@@ -106,11 +126,20 @@ class MaterialIssueController extends Controller
         return response()->json(['success' => true, 'data' => $issue]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id, Request $request): JsonResponse
     {
         $issue = MaterialIssueHeader::find($id);
         if (!$issue) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+
+        if ($issue->status !== 'Draft') {
+            return response()->json(['success' => false, 'message' => 'Only draft material issues can be deleted'], 400);
+        }
+
+        $oldStatus = $issue->status;
         $issue->delete();
+
+        $this->log($request, 'deleted', $id, ['status' => $oldStatus], []);
+
         return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 }

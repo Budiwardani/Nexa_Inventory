@@ -72,5 +72,34 @@ Route::middleware('api')->prefix('v1')->group(function () {
         Route::get('/notifications', [$p3, 'notifIndex']);
         Route::post('/notifications', [$p3, 'notifStore']);
         Route::patch('/notifications/{id}/read', [$p3, 'notifMarkRead']);
+
+        // -------------------------------------------------------
+        // Purchasing Module
+        // -------------------------------------------------------
+        $supplierCtrl = \App\Modules\Purchasing\Presentation\Controllers\SupplierController::class;
+        $poCtrl       = \App\Modules\Purchasing\Presentation\Controllers\PurchaseOrderController::class;
+        $grCtrl       = \App\Modules\Purchasing\Presentation\Controllers\GoodsReceiptController::class;
+
+        // Suppliers
+        Route::get('/suppliers', [$supplierCtrl, 'index']);
+        Route::post('/suppliers', [$supplierCtrl, 'store']);
+        Route::get('/suppliers/{id}', [$supplierCtrl, 'show']);
+        Route::put('/suppliers/{id}', [$supplierCtrl, 'update']);
+        Route::delete('/suppliers/{id}', [$supplierCtrl, 'destroy']);
+
+        // Purchase Orders
+        Route::get('/purchase-orders', [$poCtrl, 'index']);
+        Route::post('/purchase-orders', [$poCtrl, 'store']);
+        Route::get('/purchase-orders/{id}', [$poCtrl, 'show']);
+        Route::put('/purchase-orders/{id}', [$poCtrl, 'update']);
+        Route::delete('/purchase-orders/{id}', [$poCtrl, 'destroy']);
+        Route::post('/purchase-orders/{id}/approve', [$poCtrl, 'approve']);
+
+        // Goods Receipts
+        Route::get('/goods-receipts', [$grCtrl, 'index']);
+        Route::post('/goods-receipts', [$grCtrl, 'store']);
+        Route::get('/goods-receipts/{id}', [$grCtrl, 'show']);
+        Route::delete('/goods-receipts/{id}', [$grCtrl, 'destroy']);
+        Route::post('/goods-receipts/{id}/receive', [$grCtrl, 'receive']);
     });
 });

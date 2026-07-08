@@ -204,12 +204,15 @@ export function CrudPage({
                     </td>
                   ))}
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => setDeleteId(row.id)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {onDelete && (!statusKey || !row[statusKey] || ['Draft', 'Pending', 'Scheduled', 'Open'].includes(row[statusKey])) && (
+                      <button
+                        onClick={() => setDeleteId(row.id)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -21,9 +21,18 @@ const useCreateMaterialReturn = () => {
   });
 };
 
+const useDeleteMaterialReturn = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => (await api.delete(`/material-returns/${id}`)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['material-returns'] }),
+  });
+};
+
 export function MaterialReturnPage() {
   const { data, isLoading } = useGetMaterialReturns();
   const createMutation = useCreateMaterialReturn();
+  const deleteMutation = useDeleteMaterialReturn();
 
   const returns = useMemo(() => (data?.success ? data.data : []), [data]);
 
@@ -45,6 +54,12 @@ export function MaterialReturnPage() {
       newItems[index] = { ...newItems[index], [field]: value };
       return newItems;
     });
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('Are you sure you want to delete this material return?')) {
+      deleteMutation.mutate(id);
+    }
   };
 
   const handleSubmit = () => {
@@ -88,7 +103,14 @@ export function MaterialReturnPage() {
                       Return Date: {ret.return_date} | Warehouse: {ret.warehouse || '—'}
                     </CardDescription>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-700">{ret.status}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-700">{ret.status}</span>
+                    {['Draft', 'Pending'].includes(ret.status) && (
+                      <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(ret.id)} disabled={deleteMutation.isPending}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-4">

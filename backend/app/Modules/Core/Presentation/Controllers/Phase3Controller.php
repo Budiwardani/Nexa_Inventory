@@ -7,9 +7,25 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Core\Domain\Models\AuditLog;
 
 class Phase3Controller extends Controller
 {
+    private function log(Request $request, string $event, string $type, int $modelId, array $old = [], array $new = []): void
+    {
+        AuditLog::create([
+            'user_id'        => $request->user()?->id ?? auth()->id(),
+            'event'          => $event,
+            'auditable_type' => $type,
+            'auditable_id'   => $modelId,
+            'old_values'     => json_encode($old),
+            'new_values'     => json_encode($new),
+            'url'            => $request->fullUrl(),
+            'ip_address'     => $request->ip(),
+            'user_agent'     => $request->userAgent(),
+        ]);
+    }
+
     // ─── QC Inspections ──────────────────────────────────────────────────────
 
     public function qcIndex(Request $request): JsonResponse
@@ -39,12 +55,20 @@ class Phase3Controller extends Controller
             'created_by' => auth()->id(),
             'created_at' => now(), 'updated_at' => now(),
         ]));
+                $this->log($request, 'created', 'QCInspection', $id, [], ['status' => 'Created/Draft']);
         return response()->json(['success' => true, 'message' => 'QC Inspection created', 'data' => DB::table('qc_inspections')->find($id)], 201);
     }
 
-    public function qcDestroy(int $id): JsonResponse
+    public function qcDestroy(int $id, Request $request): JsonResponse
     {
+        $row = DB::table('qc_inspections')->find($id);
+        if (!$row) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        if (!isset($row->status) || !in_array($row->status, ['Draft', 'Pending'])) {
+            return response()->json(['success' => false, 'message' => 'Cannot delete in current status'], 400);
+        }
+        $oldStatus = $row->status ?? 'Unknown';
         DB::table('qc_inspections')->where('id', $id)->update(['deleted_at' => now()]);
+        $this->log($request, 'deleted', 'QCInspection', $id, ['status' => $oldStatus], []);
         return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 
@@ -77,12 +101,20 @@ class Phase3Controller extends Controller
             'created_by' => auth()->id(),
             'created_at' => now(), 'updated_at' => now(),
         ]));
+                $this->log($request, 'created', 'Scrap', $id, [], ['status' => 'Created/Draft']);
         return response()->json(['success' => true, 'message' => 'Scrap recorded', 'data' => DB::table('production_scraps')->find($id)], 201);
     }
 
-    public function scrapDestroy(int $id): JsonResponse
+    public function scrapDestroy(int $id, Request $request): JsonResponse
     {
+        $row = DB::table('production_scraps')->find($id);
+        if (!$row) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        if (!isset($row->status) || !in_array($row->status, ['Draft', 'Pending'])) {
+            return response()->json(['success' => false, 'message' => 'Cannot delete in current status'], 400);
+        }
+        $oldStatus = $row->status ?? 'Unknown';
         DB::table('production_scraps')->where('id', $id)->update(['deleted_at' => now()]);
+        $this->log($request, 'deleted', 'Scrap', $id, ['status' => $oldStatus], []);
         return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 
@@ -115,12 +147,20 @@ class Phase3Controller extends Controller
             'created_by' => auth()->id(),
             'created_at' => now(), 'updated_at' => now(),
         ]));
+                $this->log($request, 'created', 'Rework', $id, [], ['status' => 'Created/Draft']);
         return response()->json(['success' => true, 'message' => 'Rework recorded', 'data' => DB::table('production_reworks')->find($id)], 201);
     }
 
-    public function reworkDestroy(int $id): JsonResponse
+    public function reworkDestroy(int $id, Request $request): JsonResponse
     {
+        $row = DB::table('production_reworks')->find($id);
+        if (!$row) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        if (!isset($row->status) || !in_array($row->status, ['Draft', 'Pending'])) {
+            return response()->json(['success' => false, 'message' => 'Cannot delete in current status'], 400);
+        }
+        $oldStatus = $row->status ?? 'Unknown';
         DB::table('production_reworks')->where('id', $id)->update(['deleted_at' => now()]);
+        $this->log($request, 'deleted', 'Rework', $id, ['status' => $oldStatus], []);
         return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 
@@ -148,12 +188,20 @@ class Phase3Controller extends Controller
             'created_by' => auth()->id(),
             'created_at' => now(), 'updated_at' => now(),
         ]));
+                $this->log($request, 'created', 'Machine', $id, [], ['status' => 'Created/Draft']);
         return response()->json(['success' => true, 'message' => 'Machine created', 'data' => DB::table('machines')->find($id)], 201);
     }
 
-    public function machineDestroy(int $id): JsonResponse
+    public function machineDestroy(int $id, Request $request): JsonResponse
     {
+        $row = DB::table('machines')->find($id);
+        if (!$row) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        if (!isset($row->status) || !in_array($row->status, ['Active', 'Inactive'])) {
+            return response()->json(['success' => false, 'message' => 'Cannot delete in current status'], 400);
+        }
+        $oldStatus = $row->status ?? 'Unknown';
         DB::table('machines')->where('id', $id)->update(['deleted_at' => now()]);
+        $this->log($request, 'deleted', 'Machine', $id, ['status' => $oldStatus], []);
         return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 
@@ -189,6 +237,7 @@ class Phase3Controller extends Controller
             'created_by' => auth()->id(),
             'created_at' => now(), 'updated_at' => now(),
         ]));
+                $this->log($request, 'created', 'Maintenance', $id, [], ['status' => 'Created/Draft']);
         return response()->json(['success' => true, 'message' => 'Maintenance log created', 'data' => DB::table('machine_maintenance_logs')->find($id)], 201);
     }
 
@@ -226,6 +275,7 @@ class Phase3Controller extends Controller
             'created_by' => auth()->id(),
             'created_at' => now(), 'updated_at' => now(),
         ]));
+                $this->log($request, 'created', 'Downtime', $id, [], ['status' => 'Created/Draft']);
         return response()->json(['success' => true, 'message' => 'Downtime recorded', 'data' => DB::table('machine_downtimes')->find($id)], 201);
     }
 
@@ -256,6 +306,7 @@ class Phase3Controller extends Controller
             'created_by' => auth()->id(),
             'created_at' => now(), 'updated_at' => now(),
         ]));
+                $this->log($request, 'created', 'CapacityPlan', $id, [], ['status' => 'Created/Draft']);
         return response()->json(['success' => true, 'message' => 'Capacity plan created', 'data' => DB::table('capacity_plans')->find($id)], 201);
     }
 
@@ -290,6 +341,7 @@ class Phase3Controller extends Controller
             'created_by' => auth()->id(),
             'created_at' => now(), 'updated_at' => now(),
         ]));
+                $this->log($request, 'created', 'ProductionCost', $id, [], ['status' => 'Created/Draft']);
         return response()->json(['success' => true, 'message' => 'Cost record created', 'data' => DB::table('production_costs')->find($id)], 201);
     }
 

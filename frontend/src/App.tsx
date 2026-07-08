@@ -34,6 +34,9 @@ const UsersPage = React.lazy(() => import('./features/users/routes/UsersPage').t
 const RolesPage = React.lazy(() => import('./features/roles/routes/RolesPage').then(m => ({ default: m.RolesPage })));
 const SettingsPage = React.lazy(() => import('./features/settings/routes/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const BrandingPage = React.lazy(() => import('./features/branding/routes/BrandingPage').then(m => ({ default: m.BrandingPage })));
+const SuppliersPage = React.lazy(() => import('./features/purchasing/routes/SuppliersPage').then(m => ({ default: m.SuppliersPage })));
+const PurchaseOrdersPage = React.lazy(() => import('./features/purchasing/routes/PurchaseOrdersPage').then(m => ({ default: m.PurchaseOrdersPage })));
+const GoodsReceiptPage = React.lazy(() => import('./features/purchasing/routes/GoodsReceiptPage').then(m => ({ default: m.GoodsReceiptPage })));
 
 function App() {
   const isAuthenticated = !!localStorage.getItem('auth_token');
@@ -73,6 +76,9 @@ function App() {
           <Route path="roles" element={<RolesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="branding" element={<BrandingPage />} />
+          <Route path="suppliers" element={<SuppliersPage />} />
+          <Route path="purchase-orders" element={<PurchaseOrdersPage />} />
+          <Route path="goods-receipt" element={<GoodsReceiptPage />} />
         </Route>
 
         <Route

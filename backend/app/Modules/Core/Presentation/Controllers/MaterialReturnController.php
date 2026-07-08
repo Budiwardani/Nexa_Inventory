@@ -8,9 +8,24 @@ use App\Modules\Core\Domain\Models\MaterialReturnItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Modules\Core\Domain\Models\AuditLog;
 
 class MaterialReturnController extends Controller
 {
+    private function log(Request $request, string $event, int $modelId, array $old = [], array $new = []): void
+    {
+        AuditLog::create([
+            'user_id'        => $request->user()?->id,
+            'event'          => $event,
+            'auditable_type' => 'MaterialReturn',
+            'auditable_id'   => $modelId,
+            'old_values'     => json_encode($old),
+            'new_values'     => json_encode($new),
+            'url'            => $request->fullUrl(),
+            'ip_address'     => $request->ip(),
+            'user_agent'     => $request->userAgent(),
+        ]);
+    }
     public function index(Request $request): JsonResponse
     {
         $returns = MaterialReturnHeader::with('items')
@@ -64,6 +79,11 @@ class MaterialReturnController extends Controller
 
             DB::commit();
 
+            $this->log($request, 'created', $header->id, [], [
+                'return_date' => $header->return_date,
+                'status'      => $header->status,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Material Return created',
@@ -82,11 +102,20 @@ class MaterialReturnController extends Controller
         return response()->json(['success' => true, 'data' => $ret]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id, Request $request): JsonResponse
     {
         $ret = MaterialReturnHeader::find($id);
         if (!$ret) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+
+        if (!in_array($ret->status, ['Draft', 'Pending'])) {
+            return response()->json(['success' => false, 'message' => 'Cannot delete Material Return in current status'], 400);
+        }
+
+        $oldStatus = $ret->status;
         $ret->delete();
+
+        $this->log($request, 'deleted', $id, ['status' => $oldStatus], []);
+
         return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 }

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import {
   LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
   FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell, Paintbrush,
-  ChevronRight, Menu, X,
+  ChevronRight, Menu, X, ShoppingCart,
 } from 'lucide-react';
 
 type NavItemDef = {
@@ -78,6 +78,14 @@ export const MainLayout = () => {
             { icon: <Package size={16} />, label: 'Finished Goods', to: '/finished-goods' },
           ],
         },
+      ],
+    },
+    {
+      title: 'Purchasing',
+      items: [
+        { icon: <ShoppingCart size={18} />, label: 'Suppliers', to: '/suppliers' },
+        { icon: <ShoppingCart size={18} />, label: 'Purchase Orders', to: '/purchase-orders' },
+        { icon: <Package size={18} />, label: 'Goods Receipt', to: '/goods-receipt' },
       ],
     },
     {

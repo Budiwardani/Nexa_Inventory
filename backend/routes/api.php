@@ -39,6 +39,11 @@ Route::middleware('api')->prefix('v1')->group(function () {
         Route::apiResource('/settings', \App\Modules\Core\Presentation\Controllers\SettingsController::class);
         Route::get('/dashboard/metrics', [\App\Modules\Core\Presentation\Controllers\DashboardController::class, 'metrics']);
 
+        // Accounting / General Ledger
+        Route::apiResource('/chart-of-accounts', \App\Modules\Core\Presentation\Controllers\ChartOfAccountController::class);
+        Route::get('/journals', [\App\Modules\Core\Presentation\Controllers\JournalController::class, 'index']);
+        Route::get('/journals/{id}', [\App\Modules\Core\Presentation\Controllers\JournalController::class, 'show']);
+
         // Phase 3: QC, Scrap, Rework, Machines, Maintenance, Downtime, Capacity, Costing, Notifications
         $p3 = \App\Modules\Core\Presentation\Controllers\Phase3Controller::class;
         Route::get('/qc-inspections', [$p3, 'qcIndex']);

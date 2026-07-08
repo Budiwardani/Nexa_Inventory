@@ -104,7 +104,15 @@ export const MainLayout = () => {
       items: [
         { icon: <BarChart size={18} />, label: 'Capacity Planning', to: '/capacity-planning' },
         { icon: <DollarSign size={18} />, label: 'Costing', to: '/costing' },
-        { icon: <DollarSign size={18} />, label: 'Accounting', to: '/accounting' },
+        {
+          icon: <DollarSign size={18} />,
+          label: 'Accounting',
+          to: '/chart-of-accounts',
+          children: [
+            { icon: <ClipboardList size={16} />, label: 'Chart of Accounts', to: '/chart-of-accounts' },
+            { icon: <ClipboardList size={16} />, label: 'Journals', to: '/journals' },
+          ],
+        },
         { icon: <BarChart size={18} />, label: 'Analytics', to: '/analytics' },
         { icon: <Bell size={18} />, label: 'Notifications', to: '/notifications' },
       ],

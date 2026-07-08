@@ -24,11 +24,8 @@ const MaintenancePage = React.lazy(() => import('./features/maintenance/routes/M
 const DowntimePage = React.lazy(() => import('./features/downtime/routes/DowntimePage').then(m => ({ default: m.DowntimePage })));
 const CapacityPlanningPage = React.lazy(() => import('./features/capacity-planning/routes/CapacityPlanningPage').then(m => ({ default: m.CapacityPlanningPage })));
 const CostingPage = React.lazy(() => import('./features/costing/routes/CostingPage').then(m => ({ default: m.CostingPage })));
-const AccountingPage = React.lazy(() => import('./features/common/routes/ModulePage').then(m => ({ default: () => <m.ModulePage title="Accounting Integration" description="Integrate production and inventory movements with general ledger and WIP accounting." highlights={[
-  'Automatic journal entries are created on production events.',
-  'Supports cost center, project code, and department.',
-  'Finished goods and COGS accounts are updated automatically.',
-]}/> })));
+const ChartOfAccountsPage = React.lazy(() => import('./features/common/routes/ChartOfAccountsPage').then(m => ({ default: m.ChartOfAccountsPage })));
+const JournalsPage = React.lazy(() => import('./features/common/routes/JournalsPage').then(m => ({ default: m.JournalsPage })));
 const NotificationPage = React.lazy(() => import('./features/notifications/routes/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const UsersPage = React.lazy(() => import('./features/users/routes/UsersPage').then(m => ({ default: m.UsersPage })));
 const RolesPage = React.lazy(() => import('./features/roles/routes/RolesPage').then(m => ({ default: m.RolesPage })));
@@ -68,7 +65,8 @@ function App() {
           <Route path="downtime" element={<DowntimePage />} />
           <Route path="capacity-planning" element={<CapacityPlanningPage />} />
           <Route path="costing" element={<CostingPage />} />
-          <Route path="accounting" element={<AccountingPage />} />
+          <Route path="chart-of-accounts" element={<ChartOfAccountsPage />} />
+          <Route path="journals" element={<JournalsPage />} />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="machines" element={<MachinePage />} />
           <Route path="analytics" element={<AnalyticsPage />} />

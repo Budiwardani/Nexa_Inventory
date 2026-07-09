@@ -6,7 +6,7 @@ import { useState } from 'react';
 import {
   LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
   FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell, Paintbrush,
-  ChevronRight, Menu, X, ShoppingCart,
+  ChevronRight, Menu, X, ShoppingCart, Database, ArrowRightLeft, Calculator,
 } from 'lucide-react';
 
 type NavItemDef = {
@@ -76,6 +76,22 @@ export const MainLayout = () => {
             { icon: <Package size={16} />, label: 'Material Issue', to: '/material-issue' },
             { icon: <Package size={16} />, label: 'Material Return', to: '/material-return' },
             { icon: <Package size={16} />, label: 'Finished Goods', to: '/finished-goods' },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Master Data',
+      items: [
+        {
+          icon: <Database size={18} />,
+          label: 'Master Config',
+          to: '/units',
+          children: [
+            { icon: <Database size={16} />, label: 'Base Units (UOM)', to: '/units' },
+            { icon: <ArrowRightLeft size={16} />, label: 'Conversion Matrix', to: '/conversions' },
+            { icon: <Calculator size={16} />, label: 'Simulator', to: '/conversion-simulator' },
+            { icon: <Package size={16} />, label: 'Product Mappings', to: '/product-units' },
           ],
         },
       ],

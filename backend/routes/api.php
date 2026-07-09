@@ -44,6 +44,13 @@ Route::middleware('api')->prefix('v1')->group(function () {
         Route::get('/journals', [\App\Modules\Core\Presentation\Controllers\JournalController::class, 'index']);
         Route::get('/journals/{id}', [\App\Modules\Core\Presentation\Controllers\JournalController::class, 'show']);
 
+        // Master Data: Units & Conversions
+        Route::get('/unit-groups', [\App\Modules\Core\Presentation\Controllers\UnitController::class, 'getGroups']);
+        Route::apiResource('/units', \App\Modules\Core\Presentation\Controllers\UnitController::class);
+        Route::post('/unit-conversions/simulate', [\App\Modules\Core\Presentation\Controllers\UnitConversionController::class, 'simulate']);
+        Route::apiResource('/unit-conversions', \App\Modules\Core\Presentation\Controllers\UnitConversionController::class);
+        Route::apiResource('/product-unit-mappings', \App\Modules\Core\Presentation\Controllers\ProductUnitMappingController::class);
+
         // Phase 3: QC, Scrap, Rework, Machines, Maintenance, Downtime, Capacity, Costing, Notifications
         $p3 = \App\Modules\Core\Presentation\Controllers\Phase3Controller::class;
         Route::get('/qc-inspections', [$p3, 'qcIndex']);

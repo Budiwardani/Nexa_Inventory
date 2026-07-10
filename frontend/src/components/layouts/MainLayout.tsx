@@ -1,7 +1,10 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { useGetSettings } from '@/features/phase3/api/phase3Api';
+import { prefetchRoute } from '@/lib/lazyRoutes';
+import { RouteFallback } from '@/components/shared/RouteFallback';
 import { useState } from 'react';
 import {
   LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
@@ -301,7 +304,9 @@ export const MainLayout = () => {
         </header>
 
         <div className="flex-1 overflow-y-auto p-5 lg:p-8">
-          <Outlet />
+          <Suspense fallback={<RouteFallback />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>
@@ -320,6 +325,8 @@ const NavItem = ({
     <NavLink
       to={to}
       onClick={onNavigate}
+      onMouseEnter={() => prefetchRoute(to)}
+      onFocus={() => prefetchRoute(to)}
       className={({ isActive }) =>
         `flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${
           isActive
@@ -347,6 +354,8 @@ const NavSubItem = ({
     <NavLink
       to={to}
       onClick={onNavigate}
+      onMouseEnter={() => prefetchRoute(to)}
+      onFocus={() => prefetchRoute(to)}
       className={({ isActive }) =>
         `flex items-center gap-3 pl-8 pr-3 py-1.5 rounded-md transition-colors text-sm ${
           isActive

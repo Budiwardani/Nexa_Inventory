@@ -1,60 +1,61 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyRoute, layoutLoader, routeLoaders } from './lib/lazyRoutes';
+import { RouteFallback } from './components/shared/RouteFallback';
 
-const LoginPage = React.lazy(() => import('./features/auth/routes/LoginPage').then(m => ({ default: m.LoginPage })));
-const MainLayout = React.lazy(() => import('./components/layouts/MainLayout').then(m => ({ default: m.MainLayout })));
-const DashboardPage = React.lazy(() => import('./features/dashboard/routes/DashboardPage').then(m => ({ default: m.DashboardPage })));
-const ProductionPage = React.lazy(() => import('./features/production/routes/ProductionPage').then(m => ({ default: m.ProductionPage })));
-const BOMPage = React.lazy(() => import('./features/bom/routes/BOMPage').then(m => ({ default: m.BOMPage })));
-const RoutingPage = React.lazy(() => import('./features/routing/routes/RoutingPage').then(m => ({ default: m.RoutingPage })));
-const WorkOrderPageReal = React.lazy(() => import('./features/work-order/routes/WorkOrderPage').then(m => ({ default: m.WorkOrderPage })));
-const MaterialIssuePageReal = React.lazy(() => import('./features/material-issue/routes/MaterialIssuePage').then(m => ({ default: m.MaterialIssuePage })));
-const MaterialReturnPageReal = React.lazy(() => import('./features/material-return/routes/MaterialReturnPage').then(m => ({ default: m.MaterialReturnPage })));
-const FinishedGoodsPageReal = React.lazy(() => import('./features/finished-goods/routes/FinishedGoodsPage').then(m => ({ default: m.FinishedGoodsPage })));
-const ProductionOrderPage = React.lazy(() => import('./features/production-order/routes/ProductionOrderPage').then(m => ({ default: m.ProductionOrderPage })));
-const InventoryPage = React.lazy(() => import('./features/inventory/routes/InventoryPage').then(m => ({ default: m.InventoryPage })));
-const AnalyticsPage = React.lazy(() => import('./features/analytics/routes/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const LoginPage = lazyRoute(routeLoaders['/login']);
+const MainLayout = lazyRoute(layoutLoader);
+const DashboardPage = lazyRoute(routeLoaders['/']);
+const ProductionPage = lazyRoute(routeLoaders['/production']);
+const BOMPage = lazyRoute(routeLoaders['/bom']);
+const RoutingPage = lazyRoute(routeLoaders['/routing']);
+const ProductionOrderPage = lazyRoute(routeLoaders['/production-order']);
+const WorkOrderPageReal = lazyRoute(routeLoaders['/work-order']);
+const MaterialIssuePageReal = lazyRoute(routeLoaders['/material-issue']);
+const MaterialReturnPageReal = lazyRoute(routeLoaders['/material-return']);
+const FinishedGoodsPageReal = lazyRoute(routeLoaders['/finished-goods']);
+const InventoryPage = lazyRoute(routeLoaders['/inventory']);
+const AnalyticsPage = lazyRoute(routeLoaders['/analytics']);
 
-
-const QualityControlPage = React.lazy(() => import('./features/quality-control/routes/QualityControlPage').then(m => ({ default: m.QualityControlPage })));
-const ScrapManagementPage = React.lazy(() => import('./features/scrap-management/routes/ScrapManagementPage').then(m => ({ default: m.ScrapManagementPage })));
-const ReworkPage = React.lazy(() => import('./features/rework/routes/ReworkPage').then(m => ({ default: m.ReworkPage })));
-const MachinePage = React.lazy(() => import('./features/machines/routes/MachinePage').then(m => ({ default: m.MachinePage })));
-const MaintenancePage = React.lazy(() => import('./features/maintenance/routes/MaintenancePage').then(m => ({ default: m.MaintenancePage })));
-const DowntimePage = React.lazy(() => import('./features/downtime/routes/DowntimePage').then(m => ({ default: m.DowntimePage })));
-const CapacityPlanningPage = React.lazy(() => import('./features/capacity-planning/routes/CapacityPlanningPage').then(m => ({ default: m.CapacityPlanningPage })));
-const CostingPage = React.lazy(() => import('./features/costing/routes/CostingPage').then(m => ({ default: m.CostingPage })));
-const ChartOfAccountsPage = React.lazy(() => import('./features/common/routes/ChartOfAccountsPage').then(m => ({ default: m.ChartOfAccountsPage })));
-const JournalsPage = React.lazy(() => import('./features/common/routes/JournalsPage').then(m => ({ default: m.JournalsPage })));
+const QualityControlPage = lazyRoute(routeLoaders['/quality-control']);
+const ScrapManagementPage = lazyRoute(routeLoaders['/scrap-management']);
+const ReworkPage = lazyRoute(routeLoaders['/rework']);
+const MachinePage = lazyRoute(routeLoaders['/machines']);
+const MaintenancePage = lazyRoute(routeLoaders['/maintenance']);
+const DowntimePage = lazyRoute(routeLoaders['/downtime']);
+const CapacityPlanningPage = lazyRoute(routeLoaders['/capacity-planning']);
+const CostingPage = lazyRoute(routeLoaders['/costing']);
+const ChartOfAccountsPage = lazyRoute(routeLoaders['/chart-of-accounts']);
+const JournalsPage = lazyRoute(routeLoaders['/journals']);
 
 // Master Data & Conversions
-const UnitsPage = React.lazy(() => import('./features/master-data/routes/UnitsPage').then(m => ({ default: m.UnitsPage })));
-const ConversionsPage = React.lazy(() => import('./features/master-data/routes/ConversionsPage').then(m => ({ default: m.ConversionsPage })));
-const ConversionSimulatorPage = React.lazy(() => import('./features/master-data/routes/ConversionSimulatorPage').then(m => ({ default: m.ConversionSimulatorPage })));
-const ProductUnitMappingPage = React.lazy(() => import('./features/master-data/routes/ProductUnitMappingPage').then(m => ({ default: m.ProductUnitMappingPage })));
+const UnitsPage = lazyRoute(routeLoaders['/units']);
+const ConversionsPage = lazyRoute(routeLoaders['/conversions']);
+const ConversionSimulatorPage = lazyRoute(routeLoaders['/conversion-simulator']);
+const ProductUnitMappingPage = lazyRoute(routeLoaders['/product-units']);
 // Inventory
-const WarehousePage = React.lazy(() => import('./features/inventory/routes/WarehousePage').then(m => ({ default: m.WarehousePage })));
-const StockLedgerPage = React.lazy(() => import('./features/inventory/routes/StockLedgerPage').then(m => ({ default: m.StockLedgerPage })));
-const StockAdjustmentsPage = React.lazy(() => import('./features/inventory/routes/StockAdjustmentsPage').then(m => ({ default: m.StockAdjustmentsPage })));
-const StockTransfersPage = React.lazy(() => import('./features/inventory/routes/StockTransfersPage').then(m => ({ default: m.StockTransfersPage })));
-const DepartmentsPage = React.lazy(() => import('./features/inventory/routes/DepartmentsPage').then(m => ({ default: m.DepartmentsPage })));
+const WarehousePage = lazyRoute(routeLoaders['/warehouses']);
+const StockLedgerPage = lazyRoute(routeLoaders['/stock-ledger']);
+const StockAdjustmentsPage = lazyRoute(routeLoaders['/stock-adjustments']);
+const StockTransfersPage = lazyRoute(routeLoaders['/stock-transfers']);
+const DepartmentsPage = lazyRoute(routeLoaders['/departments']);
 // Reports
-const ReportsPage = React.lazy(() => import('./features/reports/routes/ReportsPage').then(m => ({ default: m.ReportsPage })));
+const ReportsPage = lazyRoute(routeLoaders['/reports']);
 
-const NotificationPage = React.lazy(() => import('./features/notifications/routes/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
-const UsersPage = React.lazy(() => import('./features/users/routes/UsersPage').then(m => ({ default: m.UsersPage })));
-const RolesPage = React.lazy(() => import('./features/roles/routes/RolesPage').then(m => ({ default: m.RolesPage })));
-const SettingsPage = React.lazy(() => import('./features/settings/routes/SettingsPage').then(m => ({ default: m.SettingsPage })));
-const BrandingPage = React.lazy(() => import('./features/branding/routes/BrandingPage').then(m => ({ default: m.BrandingPage })));
-const SuppliersPage = React.lazy(() => import('./features/purchasing/routes/SuppliersPage').then(m => ({ default: m.SuppliersPage })));
-const PurchaseOrdersPage = React.lazy(() => import('./features/purchasing/routes/PurchaseOrdersPage').then(m => ({ default: m.PurchaseOrdersPage })));
-const GoodsReceiptPage = React.lazy(() => import('./features/purchasing/routes/GoodsReceiptPage').then(m => ({ default: m.GoodsReceiptPage })));
+const NotificationPage = lazyRoute(routeLoaders['/notifications']);
+const UsersPage = lazyRoute(routeLoaders['/users']);
+const RolesPage = lazyRoute(routeLoaders['/roles']);
+const SettingsPage = lazyRoute(routeLoaders['/settings']);
+const BrandingPage = lazyRoute(routeLoaders['/branding']);
+const SuppliersPage = lazyRoute(routeLoaders['/suppliers']);
+const PurchaseOrdersPage = lazyRoute(routeLoaders['/purchase-orders']);
+const GoodsReceiptPage = lazyRoute(routeLoaders['/goods-receipt']);
 
 function App() {
   const isAuthenticated = !!localStorage.getItem('auth_token');
 
   return (
-    <Suspense fallback={<div className="p-8">Loading…</div>}>
+    <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 

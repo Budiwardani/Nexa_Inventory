@@ -32,6 +32,10 @@ const UnitsPage = React.lazy(() => import('./features/master-data/routes/UnitsPa
 const ConversionsPage = React.lazy(() => import('./features/master-data/routes/ConversionsPage').then(m => ({ default: m.ConversionsPage })));
 const ConversionSimulatorPage = React.lazy(() => import('./features/master-data/routes/ConversionSimulatorPage').then(m => ({ default: m.ConversionSimulatorPage })));
 const ProductUnitMappingPage = React.lazy(() => import('./features/master-data/routes/ProductUnitMappingPage').then(m => ({ default: m.ProductUnitMappingPage })));
+// Inventory
+const WarehousePage = React.lazy(() => import('./features/inventory/routes/WarehousePage').then(m => ({ default: m.WarehousePage })));
+const StockLedgerPage = React.lazy(() => import('./features/inventory/routes/StockLedgerPage').then(m => ({ default: m.StockLedgerPage })));
+
 const NotificationPage = React.lazy(() => import('./features/notifications/routes/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const UsersPage = React.lazy(() => import('./features/users/routes/UsersPage').then(m => ({ default: m.UsersPage })));
 const RolesPage = React.lazy(() => import('./features/roles/routes/RolesPage').then(m => ({ default: m.RolesPage })));
@@ -77,6 +81,8 @@ function App() {
           <Route path="conversions" element={<ConversionsPage />} />
           <Route path="conversion-simulator" element={<ConversionSimulatorPage />} />
           <Route path="product-units" element={<ProductUnitMappingPage />} />
+          <Route path="warehouses" element={<WarehousePage />} />
+          <Route path="stock-ledger" element={<StockLedgerPage />} />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="machines" element={<MachinePage />} />
           <Route path="analytics" element={<AnalyticsPage />} />

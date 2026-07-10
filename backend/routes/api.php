@@ -86,6 +86,14 @@ Route::middleware('api')->prefix('v1')->group(function () {
         Route::patch('/notifications/{id}/read', [$p3, 'notifMarkRead']);
 
         // -------------------------------------------------------
+        // Inventory & Warehouse Module
+        // -------------------------------------------------------
+        Route::get('/warehouses', [\App\Modules\Inventory\Presentation\Controllers\WarehouseController::class, 'index']);
+        Route::post('/warehouses', [\App\Modules\Inventory\Presentation\Controllers\WarehouseController::class, 'store']);
+        Route::get('/stocks', [\App\Modules\Inventory\Presentation\Controllers\StockController::class, 'index']);
+        Route::get('/stock-ledger', [\App\Modules\Inventory\Presentation\Controllers\StockController::class, 'ledger']);
+
+        // -------------------------------------------------------
         // Purchasing Module
         // -------------------------------------------------------
         $supplierCtrl = \App\Modules\Purchasing\Presentation\Controllers\SupplierController::class;

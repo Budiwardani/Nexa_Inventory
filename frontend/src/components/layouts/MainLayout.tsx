@@ -6,7 +6,7 @@ import { useState } from 'react';
 import {
   LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
   FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell, Paintbrush,
-  ChevronRight, Menu, X, ShoppingCart, Database, ArrowRightLeft, Calculator,
+  ChevronRight, Menu, X, ShoppingCart, Database, ArrowRightLeft, Calculator, Activity,
 } from 'lucide-react';
 
 type NavItemDef = {
@@ -71,8 +71,10 @@ export const MainLayout = () => {
         {
           icon: <Package size={18} />,
           label: 'Inventory',
-          to: '/inventory',
+          to: '/warehouses',
           children: [
+            { icon: <Package size={16} />, label: 'Warehouses & Zones', to: '/warehouses' },
+            { icon: <Activity size={16} />, label: 'Stock Ledger', to: '/stock-ledger' },
             { icon: <Package size={16} />, label: 'Material Issue', to: '/material-issue' },
             { icon: <Package size={16} />, label: 'Material Return', to: '/material-return' },
             { icon: <Package size={16} />, label: 'Finished Goods', to: '/finished-goods' },

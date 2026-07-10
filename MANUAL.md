@@ -1,43 +1,44 @@
-# Nexa-Inv — User Manual (Short)
+# Nexa-Inv — User Manual
 
-## Introduction
-Nexa-Inv is an enterprise inventory and manufacturing platform. This manual covers core usage and workflows for typical users.
+## 1. Introduction
+Nexa-Inv is a complete Enterprise Resource Planning (ERP) platform for manufacturing and inventory management. This manual covers how to navigate the system and execute standard business workflows.
 
-## Getting Started
-- Login using your credentials. For a fresh seeded install, use `superadmin@nexa-mfg.com` / `superadmin123` or `admin@nexa-mfg.com` / `password`.
-- Select company and branch if applicable.
-- Choose role-appropriate workspace (menu will show permitted modules).
+## 2. Getting Started
+- **Login:** Use your credentials to log in. Default superadmin: `superadmin@nexa-mfg.com` / `superadmin123`.
+- **Navigation:** Use the left sidebar to access different modules. The sidebar is divided into logical sections like Production, Inventory, Master Data, Reports, etc.
 
-## Main Navigation
-- Dashboard: quick KPIs and widgets.
-- Master Data: products, suppliers, customers.
-- Inventory: warehouses, stock movements, adjustments.
-- Manufacturing: BOMs, routings, production plans and orders.
-- Purchasing: PR, RFQ, PO, GR, supplier invoices.
-- Sales: quotations, orders, deliveries, invoices.
-- Finance: journals, accounts, payments.
-- Reports: dashboards, exports.
+## 3. Master Data Management
+Before running transactions, ensure your Master Data is set up:
+- **Units & Conversions:** Go to `Master Config -> Base Units` to create units (e.g., Kg, Pcs). Set up conversions in `Conversion Matrix`.
+- **Departments:** Go to `Master Config -> Departments & Units` to create divisions like 'Production', 'QC', or 'Warehouse'.
+- **Warehouses:** Go to `Inventory -> Warehouses & Zones` to define where physical stock is kept.
 
-## Typical Workflows (short)
-- Create Product: Master Data → Products → New Product → Save.
-- Create BOM: Engineering → BOMs → New BOM → Add items → Approve.
-- Production Order: Planning → Production Plans → Release Order → Issue Materials → Start Production → QC → Receive FG.
-- Purchase Order: Purchasing → Purchase Orders → New PO → Approve → Receive Goods → Invoice.
+## 4. Inventory Workflows
+- **Stock Adjustments:** If physical stock doesn't match the system, go to `Inventory -> Stock Adjustments`, select the warehouse, input the difference (+ or -), and post the adjustment.
+- **Stock Transfers:** To move items, go to `Inventory -> Stock Transfers`. Select the Source Warehouse, then choose whether the destination is another Warehouse or a Department.
+- **Viewing Stock:** Go to `Inventory Reports -> Stock Summary` to see current on-hand, reserved, and available quantities. View `Stock Ledger` for historical movements.
 
-## Roles & Permissions
-- Admin: full access (use sparingly).
-- Planner: manage production plans and MRP.
-- Warehouse: material issues, stock adjustments.
-- Operator: work orders and production progress.
-- QC: quality inspections and approvals.
+## 5. Manufacturing Workflows
+- **Setup BOM & Routing:** Define the recipe in `Production -> BOM` and the steps in `Production -> Routing`.
+- **Production Order:** Create an order in `Production -> Production Order`. Release the order to begin work.
+- **Material Issue:** When production starts, issue raw materials via `Inventory -> Material Issue`.
+- **Quality Control:** Inspect output in `Quality & Machines -> Quality Control`. Mark items as Pass or Fail.
+- **Finished Goods:** After passing QC, receive the finished product into inventory via `Inventory -> Finished Goods`.
 
-## Troubleshooting
-- Can't login: verify credentials (default seeded admin is `superadmin@nexa-mfg.com` / `superadmin123`), check account lock, contact admin.
-- Missing permission: request role change from administrator.
-- Inventory mismatch: run cycle count and generate adjustment with audit.
+## 6. Advanced Operations (Phase 3)
+- **Scrap & Rework:** If items fail QC, log them in `Scrap Management` or send them to `Rework`.
+- **Machines & Maintenance:** Register machinery in `Machines`. Log regular maintenance or track breakdowns in `Downtime`.
+- **Costing:** View the financial impact of production (Material, Labor, Overhead) in `Planning & Finance -> Costing`.
+- **Analytics & Capacity:** Check machine availability and production schedules in `Capacity Planning`.
 
-## Support
-- Contact internal support team or open a ticket with audit log and screenshots.
+## 7. Purchasing Workflows
+- **Suppliers:** Manage vendors in `Purchasing -> Suppliers`.
+- **Purchase Orders:** Create orders in `Purchase Orders`.
+- **Goods Receipt:** Once items arrive from the supplier, receive them via `Goods Receipt` to automatically update stock.
 
-## Appendices
-- Keyboard shortcuts, export formats, CSV import template (refer to module docs).
+## 8. Roles & Permissions
+- Users only see the modules their Role permits.
+- If you encounter a "Forbidden" error or cannot see a menu item, contact your Administrator to update your permissions in `Administration -> Roles & Permissions`.
+
+## 9. Exporting Data
+Most lists and reports (like Inventory Reports) feature an "Export CSV" button. Clicking this will download the currently filtered view directly to your computer.

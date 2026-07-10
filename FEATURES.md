@@ -1,60 +1,55 @@
 # Nexa-Inv — Feature Overview
 
-## Core
-- Multi-company / branches support
-- Role-based access control (roles, permissions, policies)
-- Audit & activity logs
-- Settings & global configuration
+Nexa-Inv is a comprehensive Enterprise Resource Planning (ERP) platform designed to handle manufacturing, inventory, purchasing, and finance. Below is a breakdown of its core capabilities.
 
-## Master Data
-- Products, SKUs, variants, attributes
-- Categories, brands, units, price lists
-- Suppliers & customers
+## 1. Core & Administration
+- **Multi-company / Branches Support:** Manage multiple organizational units.
+- **Role-Based Access Control (RBAC):** Flexible roles, permissions, and module-level policies.
+- **Audit & Activity Logs:** Immutable tracking of user actions.
+- **Settings & Global Configuration:** Centralized app settings and branding (Custom Logos, Themes).
+- **Notifications Engine:** In-app alerts, read/unread status for critical business events.
 
-## Inventory & Warehouse
-- Warehouses, zones, racks, bins
-- Stock ledger (stock cards) and movements
-- Stock adjustments, transfers, opnames, cycle counts
-- FIFO and Average costing
-- Batch and serial number tracking
+## 2. Master Data Management
+- **Products & Items:** Manage SKUs, variants, and item attributes.
+- **Base Units & Conversions:** Define UOMs (Unit of Measure) and conversion matrices.
+- **Conversion Simulator:** Test unit conversions dynamically.
+- **Product Mappings:** Link specific products to custom units.
+- **Departments & Units:** Manage organizational divisions (Production, QC, Logistics, etc.).
 
-## Purchasing
-- PR → RFQ → Quotation → PO → Goods Receipt → Supplier Invoice → Payment
-- Supplier management and contacts
-- Receiving, returns, and matching
+## 3. Inventory & Warehouse
+- **Warehouses & Zones:** Manage physical locations, racks, and bins.
+- **Stock Ledger:** Immutable log of all stock movements (In/Out/Balance).
+- **Stock Adjustments:** Cycle counts, manual corrections for damages/losses.
+- **Stock Transfers:** Move inventory between warehouses or to specific departments.
+- **Material Issue & Return:** Track raw materials consumed or returned from production.
+- **Finished Goods Receipt:** Log output from the production floor into inventory.
+- **Inventory Reports:** Comprehensive stock summary, ledger views, transfer history, and adjustment logs with CSV export.
 
-## Manufacturing (MRP Lite)
-- BOM management (versions)
-- Routings and operations
-- Production planning, production orders, work orders
-- Material reservations, issues, and consumption
-- Finished goods receipt and costing
-- Machine assignments, maintenance & downtime
-- QC inspection and rework/scrap handling
+## 4. Manufacturing & Production (MRP)
+- **Bill of Materials (BOM):** Define raw materials required for finished goods, including versions.
+- **Routings & Operations:** Define the steps and machinery required for production.
+- **Production Planning:** Capacity planning, scheduling, and tracking.
+- **Work Orders & Production Orders:** Executable tickets for the factory floor.
+- **Machine Management:** Track machine status, specifications, and assignments.
 
-## Sales & POS
-- Quotations, Sales Orders, Deliveries, Invoicing
-- POS transactions, shifts, receipts, payments
+## 5. Phase 3 Specialized Modules
+- **Quality Control (QC):** Log inspection parameters, samples, and pass/fail statuses.
+- **Scrap Management:** Record waste, reasons for scrap, and financial impact.
+- **Rework:** Track defective items sent back for repair and associated costs.
+- **Maintenance & Downtime:** Log scheduled maintenance, unplanned breakdowns, and measure OEE (Overall Equipment Effectiveness).
+- **Production Costing:** Calculate direct materials, labor, and overhead costs per order.
 
-## Finance
-- Chart of accounts, journals, GL posting
-- Accounts payable / receivable, payments, receipts
-- Costing integration with production and inventory
+## 6. Purchasing
+- **Supplier Management:** Maintain supplier contacts and profiles.
+- **Purchase Orders (PO):** Create, approve, and track orders to suppliers.
+- **Goods Receipt (GR):** Receive items against POs and update inventory.
 
-## HR & CRM
-- Employee profiles, attendance, leave
-- Leads, prospects, campaigns, customer activities
+## 7. Finance & Accounting
+- **Chart of Accounts (COA):** Standardized financial accounts structure.
+- **Journals & Ledgers:** Double-entry accounting for financial movements.
+- **Costing Integration:** Automatic financial journal entries tied to production and purchasing.
 
-## Reporting & Notifications
-- Dashboards, KPI widgets, OEE and production reports
-- Event notifications (email, web, mobile, WhatsApp, in-app)
-
-## Security & Integration
-- API-first design (/api/v1)
-- JWT / token-based auth for APIs
-- Audit trails and immutable production histories
-- Queue-ready for async jobs and notifications
-
-## Notes
-- Features follow modular-monolith architecture.
-- Every business action must include audit records and validations.
+## 8. Security & Architecture
+- **API-First Design:** Fully decoupled backend exposing `/api/v1` RESTful endpoints.
+- **Modular Monolith Backend:** Domain-Driven Design (DDD) separating Core, Inventory, and Purchasing modules.
+- **Modern Frontend:** React + Vite + TypeScript for a blazing fast user experience.

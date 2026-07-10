@@ -92,6 +92,14 @@ Route::middleware('api')->prefix('v1')->group(function () {
         Route::post('/warehouses', [\App\Modules\Inventory\Presentation\Controllers\WarehouseController::class, 'store']);
         Route::get('/stocks', [\App\Modules\Inventory\Presentation\Controllers\StockController::class, 'index']);
         Route::get('/stock-ledger', [\App\Modules\Inventory\Presentation\Controllers\StockController::class, 'ledger']);
+        
+        // Inventory Operations
+        Route::apiResource('/stock-adjustments', \App\Modules\Inventory\Presentation\Controllers\StockAdjustmentController::class);
+        Route::post('/stock-adjustments/{id}/post', [\App\Modules\Inventory\Presentation\Controllers\StockAdjustmentController::class, 'post']);
+        
+        Route::apiResource('/stock-transfers', \App\Modules\Inventory\Presentation\Controllers\StockTransferController::class);
+        Route::post('/stock-transfers/{id}/ship', [\App\Modules\Inventory\Presentation\Controllers\StockTransferController::class, 'ship']);
+        Route::post('/stock-transfers/{id}/receive', [\App\Modules\Inventory\Presentation\Controllers\StockTransferController::class, 'receive']);
 
         // -------------------------------------------------------
         // Purchasing Module

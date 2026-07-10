@@ -7,6 +7,7 @@ import {
   LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
   FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell, Paintbrush,
   ChevronRight, Menu, X, ShoppingCart, Database, ArrowRightLeft, Calculator, Activity,
+  FileEdit,
 } from 'lucide-react';
 
 type NavItemDef = {
@@ -75,6 +76,8 @@ export const MainLayout = () => {
           children: [
             { icon: <Package size={16} />, label: 'Warehouses & Zones', to: '/warehouses' },
             { icon: <Activity size={16} />, label: 'Stock Ledger', to: '/stock-ledger' },
+            { icon: <FileEdit size={16} />, label: 'Stock Adjustments', to: '/stock-adjustments' },
+            { icon: <ArrowRightLeft size={16} />, label: 'Stock Transfers', to: '/stock-transfers' },
             { icon: <Package size={16} />, label: 'Material Issue', to: '/material-issue' },
             { icon: <Package size={16} />, label: 'Material Return', to: '/material-return' },
             { icon: <Package size={16} />, label: 'Finished Goods', to: '/finished-goods' },

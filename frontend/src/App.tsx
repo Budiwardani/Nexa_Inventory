@@ -35,6 +35,8 @@ const ProductUnitMappingPage = React.lazy(() => import('./features/master-data/r
 // Inventory
 const WarehousePage = React.lazy(() => import('./features/inventory/routes/WarehousePage').then(m => ({ default: m.WarehousePage })));
 const StockLedgerPage = React.lazy(() => import('./features/inventory/routes/StockLedgerPage').then(m => ({ default: m.StockLedgerPage })));
+const StockAdjustmentsPage = React.lazy(() => import('./features/inventory/routes/StockAdjustmentsPage').then(m => ({ default: m.StockAdjustmentsPage })));
+const StockTransfersPage = React.lazy(() => import('./features/inventory/routes/StockTransfersPage').then(m => ({ default: m.StockTransfersPage })));
 
 const NotificationPage = React.lazy(() => import('./features/notifications/routes/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const UsersPage = React.lazy(() => import('./features/users/routes/UsersPage').then(m => ({ default: m.UsersPage })));
@@ -83,6 +85,8 @@ function App() {
           <Route path="product-units" element={<ProductUnitMappingPage />} />
           <Route path="warehouses" element={<WarehousePage />} />
           <Route path="stock-ledger" element={<StockLedgerPage />} />
+          <Route path="stock-adjustments" element={<StockAdjustmentsPage />} />
+          <Route path="stock-transfers" element={<StockTransfersPage />} />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="machines" element={<MachinePage />} />
           <Route path="analytics" element={<AnalyticsPage />} />

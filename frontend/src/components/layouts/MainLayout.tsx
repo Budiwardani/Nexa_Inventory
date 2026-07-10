@@ -7,7 +7,7 @@ import {
   LogOut, Home, Users, Settings, Package, Factory, BarChart, ShieldCheck,
   FlaskConical, Wrench, Cpu, ClipboardList, DollarSign, Bell, Paintbrush,
   ChevronRight, Menu, X, ShoppingCart, Database, ArrowRightLeft, Calculator, Activity,
-  FileEdit,
+  FileEdit, Building2,
 } from 'lucide-react';
 
 type NavItemDef = {
@@ -97,8 +97,15 @@ export const MainLayout = () => {
             { icon: <ArrowRightLeft size={16} />, label: 'Conversion Matrix', to: '/conversions' },
             { icon: <Calculator size={16} />, label: 'Simulator', to: '/conversion-simulator' },
             { icon: <Package size={16} />, label: 'Product Mappings', to: '/product-units' },
+            { icon: <Building2 size={16} />, label: 'Departments & Units', to: '/departments' },
           ],
         },
+      ],
+    },
+    {
+      title: 'Reports',
+      items: [
+        { icon: <BarChart size={18} />, label: 'Inventory Reports', to: '/reports' },
       ],
     },
     {

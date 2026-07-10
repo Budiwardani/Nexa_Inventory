@@ -101,6 +101,14 @@ Route::middleware('api')->prefix('v1')->group(function () {
         Route::post('/stock-transfers/{id}/ship', [\App\Modules\Inventory\Presentation\Controllers\StockTransferController::class, 'ship']);
         Route::post('/stock-transfers/{id}/receive', [\App\Modules\Inventory\Presentation\Controllers\StockTransferController::class, 'receive']);
 
+        // Departments (Unit/Bagian Manufacturing)
+        Route::apiResource('/departments', \App\Modules\Inventory\Presentation\Controllers\DepartmentController::class);
+
+        // Warehouse CRUD full
+        Route::get('/warehouses/{id}', [\App\Modules\Inventory\Presentation\Controllers\WarehouseController::class, 'show']);
+        Route::put('/warehouses/{id}', [\App\Modules\Inventory\Presentation\Controllers\WarehouseController::class, 'update']);
+        Route::delete('/warehouses/{id}', [\App\Modules\Inventory\Presentation\Controllers\WarehouseController::class, 'destroy']);
+
         // -------------------------------------------------------
         // Purchasing Module
         // -------------------------------------------------------

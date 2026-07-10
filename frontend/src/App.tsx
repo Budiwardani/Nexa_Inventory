@@ -37,6 +37,9 @@ const WarehousePage = React.lazy(() => import('./features/inventory/routes/Wareh
 const StockLedgerPage = React.lazy(() => import('./features/inventory/routes/StockLedgerPage').then(m => ({ default: m.StockLedgerPage })));
 const StockAdjustmentsPage = React.lazy(() => import('./features/inventory/routes/StockAdjustmentsPage').then(m => ({ default: m.StockAdjustmentsPage })));
 const StockTransfersPage = React.lazy(() => import('./features/inventory/routes/StockTransfersPage').then(m => ({ default: m.StockTransfersPage })));
+const DepartmentsPage = React.lazy(() => import('./features/inventory/routes/DepartmentsPage').then(m => ({ default: m.DepartmentsPage })));
+// Reports
+const ReportsPage = React.lazy(() => import('./features/reports/routes/ReportsPage').then(m => ({ default: m.ReportsPage })));
 
 const NotificationPage = React.lazy(() => import('./features/notifications/routes/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const UsersPage = React.lazy(() => import('./features/users/routes/UsersPage').then(m => ({ default: m.UsersPage })));
@@ -87,6 +90,8 @@ function App() {
           <Route path="stock-ledger" element={<StockLedgerPage />} />
           <Route path="stock-adjustments" element={<StockAdjustmentsPage />} />
           <Route path="stock-transfers" element={<StockTransfersPage />} />
+          <Route path="departments" element={<DepartmentsPage />} />
+          <Route path="reports" element={<ReportsPage />} />
           <Route path="notifications" element={<NotificationPage />} />
           <Route path="machines" element={<MachinePage />} />
           <Route path="analytics" element={<AnalyticsPage />} />

@@ -21,6 +21,11 @@ class StockTransfer extends Model
         return $this->belongsTo(Warehouse::class, 'destination_warehouse_id');
     }
 
+    public function destinationDepartment()
+    {
+        return $this->belongsTo(Department::class, 'destination_department_id');
+    }
+
     public function items()
     {
         return $this->hasMany(StockTransferItem::class);
@@ -29,5 +34,15 @@ class StockTransfer extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function shippedBy()
+    {
+        return $this->belongsTo(User::class, 'shipped_by');
+    }
+
+    public function receivedBy()
+    {
+        return $this->belongsTo(User::class, 'received_by');
     }
 }

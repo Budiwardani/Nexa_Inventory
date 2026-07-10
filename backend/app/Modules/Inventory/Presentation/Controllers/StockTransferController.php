@@ -20,33 +20,48 @@ class StockTransferController extends Controller
     public function index()
     {
         return response()->json(
-            StockTransfer::with(['sourceWarehouse', 'destinationWarehouse', 'createdBy', 'items.product'])->latest()->paginate(50)
+            StockTransfer::with(['sourceWarehouse', 'destinationWarehouse', 'destinationDepartment', 'createdBy', 'items.product'])->latest()->paginate(50)
         );
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'source_warehouse_id' => 'required|exists:warehouses,id',
-            'destination_warehouse_id' => 'required|exists:warehouses,id|different:source_warehouse_id',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.source_location_id' => 'nullable|exists:warehouse_locations,id',
-            'items.*.destination_location_id' => 'nullable|exists:warehouse_locations,id',
-            'items.*.batch_number' => 'nullable|string',
-            'items.*.quantity' => 'required|numeric|min:0.0001',
-            'items.*.notes' => 'nullable|string',
-        ]);
+        $destType = $request->input('destination_type', 'warehouse');
 
-        $transfer = DB::transaction(function () use ($validated, $request) {
+        $rules = [
+            'source_warehouse_id'      => 'required|exists:warehouses,id',
+            'destination_type'         => 'nullable|string|in:warehouse,department',
+            'notes'                    => 'nullable|string',
+            'items'                    => 'required|array|min:1',
+            'items.*.product_id'       => 'required|exists:products,id',
+            'items.*.source_location_id'      => 'nullable|exists:warehouse_locations,id',
+            'items.*.destination_location_id' => 'nullable|exists:warehouse_locations,id',
+            'items.*.batch_number'     => 'nullable|string',
+            'items.*.quantity'         => 'required|numeric|min:0.0001',
+            'items.*.notes'            => 'nullable|string',
+        ];
+
+        if ($destType === 'department') {
+            $rules['destination_department_id'] = 'required|exists:departments,id';
+            // destination_warehouse_id is optional/nullable when transferring to a dept
+            $rules['destination_warehouse_id']  = 'nullable|exists:warehouses,id';
+        } else {
+            $rules['destination_warehouse_id']  = 'required|exists:warehouses,id|different:source_warehouse_id';
+            $rules['destination_department_id'] = 'nullable|exists:departments,id';
+        }
+
+        $validated = $request->validate($rules);
+
+        $transfer = DB::transaction(function () use ($validated, $destType, $request) {
             $trf = StockTransfer::create([
-                'transfer_number' => 'TRF-' . date('Ym') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
-                'source_warehouse_id' => $validated['source_warehouse_id'],
-                'destination_warehouse_id' => $validated['destination_warehouse_id'],
-                'notes' => $validated['notes'] ?? null,
-                'created_by' => $request->user()?->id,
-                'status' => 'draft',
+                'transfer_number'            => 'TRF-' . date('Ym') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                'source_warehouse_id'        => $validated['source_warehouse_id'],
+                'destination_warehouse_id'   => $validated['destination_warehouse_id'] ?? null,
+                'destination_type'           => $destType,
+                'destination_department_id'  => $validated['destination_department_id'] ?? null,
+                'notes'                      => $validated['notes'] ?? null,
+                'created_by'                 => $request->user()?->id,
+                'status'                     => 'draft',
             ]);
 
             foreach ($validated['items'] as $item) {
@@ -62,7 +77,8 @@ class StockTransferController extends Controller
     public function show($id)
     {
         $trf = StockTransfer::with([
-            'sourceWarehouse', 'destinationWarehouse', 'createdBy', 'shippedBy', 'receivedBy', 
+            'sourceWarehouse', 'destinationWarehouse', 'destinationDepartment',
+            'createdBy', 'shippedBy', 'receivedBy', 
             'items.product', 'items.sourceLocation', 'items.destinationLocation'
         ])->findOrFail($id);
         

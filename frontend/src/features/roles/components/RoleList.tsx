@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getRoles, getAllPermissions, createRole, updateRole, deleteRole } from '../api/rolesApi';
 import type { Role, Permission } from '../api/rolesApi';
@@ -34,6 +34,12 @@ const RoleFormDialog = ({
   const [selected, setSelected] = useState<Set<number>>(
     new Set(editRole?.permissions.map((p) => p.id) ?? [])
   );
+
+  useEffect(() => {
+    setName(editRole?.name ?? '');
+    setDescription(editRole?.description ?? '');
+    setSelected(new Set(editRole?.permissions.map((p) => p.id) ?? []));
+  }, [editRole]);
 
   const { data: permData } = useQuery({
     queryKey: ['permissions'],
@@ -86,7 +92,7 @@ const RoleFormDialog = ({
             {editRole ? 'Edit Role' : 'Create New Role'}
           </DialogTitle>
           <DialogDescription>
-            Define the role name and assign the permissions it grants.
+            Check the menus and actions this role can access. Super Admin always has full access.
           </DialogDescription>
         </DialogHeader>
 
@@ -116,8 +122,8 @@ const RoleFormDialog = ({
           <Separator />
 
           <div className="space-y-1">
-            <Label className="text-sm font-semibold">Assign Permissions</Label>
-            <p className="text-xs text-muted-foreground">Toggle individual permissions or select all in a module.</p>
+            <Label className="text-sm font-semibold">Menu Access Checklist</Label>
+            <p className="text-xs text-muted-foreground">Use the checkboxes for menu visibility and CRUD/action access, or select an entire module.</p>
           </div>
 
           <div className="space-y-5">

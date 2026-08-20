@@ -25,10 +25,77 @@ type SectionDef = {
   items: NavItemDef[];
 };
 
+const routePermissions: Record<string, string> = {
+  '/': 'dashboard.view',
+  '/production': 'production.view',
+  '/bom': 'boms.view',
+  '/routing': 'routings.view',
+  '/production-order': 'production-orders.view',
+  '/work-order': 'work-orders.view',
+  '/inventory': 'inventories.view',
+  '/warehouses': 'warehouses.view',
+  '/stock-ledger': 'stock-ledger.view',
+  '/stock-adjustments': 'stock-adjustments.view',
+  '/stock-transfers': 'stock-transfers.view',
+  '/departments': 'departments.view',
+  '/material-issue': 'material-issues.view',
+  '/material-return': 'material-returns.view',
+  '/finished-goods': 'finished-goods.view',
+  '/quality-control': 'quality-control.view',
+  '/scrap-management': 'scraps.view',
+  '/rework': 'reworks.view',
+  '/machines': 'machines.view',
+  '/maintenance': 'maintenance.view',
+  '/downtime': 'downtimes.view',
+  '/capacity-planning': 'capacity-plans.view',
+  '/costing': 'production-costs.view',
+  '/chart-of-accounts': 'chart-of-accounts.view',
+  '/journals': 'journals.view',
+  '/units': 'units.view',
+  '/conversions': 'unit-conversions.view',
+  '/conversion-simulator': 'unit-conversions.view',
+  '/product-units': 'product-unit-mappings.view',
+  '/reports': 'reports.view',
+  '/notifications': 'notifications.view',
+  '/analytics': 'reports.view',
+  '/users': 'users.view',
+  '/roles': 'roles.view',
+  '/settings': 'settings.view',
+  '/branding': 'branding.view',
+  '/suppliers': 'suppliers.view',
+  '/purchase-orders': 'purchase-orders.view',
+  '/goods-receipt': 'goods-receipts.view',
+};
+
+const getPermissionForRoute = (route: string) => routePermissions[route];
+
+const filterMenuItems = (items: NavItemDef[], canAccess: (permission?: string) => boolean): NavItemDef[] =>
+  items.reduce<NavItemDef[]>((visibleItems, item) => {
+    const visibleChildren = item.children
+      ? filterMenuItems(item.children, canAccess)
+      : undefined;
+    const itemIsVisible = canAccess(getPermissionForRoute(item.to));
+
+    if (itemIsVisible || visibleChildren?.length) {
+      visibleItems.push({ ...item, children: visibleChildren });
+    }
+
+    return visibleItems;
+  }, []);
+
 export const MainLayout = () => {
   const navigate = useNavigate();
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
+  const isSuperAdmin = user?.roles?.some(
+    (role: { name?: string }) => role.name?.toLowerCase() === 'super admin',
+  ) ?? false;
+  const userPermissions = new Set<string>(
+    user?.roles?.flatMap((role: { permissions?: { name: string }[] }) =>
+      role.permissions?.map((permission) => permission.name) ?? [],
+    ) ?? [],
+  );
+  const canAccess = (permission?: string) => isSuperAdmin || (!!permission && userPermissions.has(permission));
 
   // Track collapsed state per section title — default all expanded
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -192,6 +259,8 @@ export const MainLayout = () => {
       <div className="flex-1 overflow-y-auto py-3">
         <nav className="space-y-0.5 px-2">
           {sections.map((section) => {
+            const visibleItems = filterMenuItems(section.items, canAccess);
+            if (!visibleItems.length) return null;
             const isCollapsed = collapsed[section.title] ?? false;
             return (
               <div key={section.title} className="mb-1">
@@ -212,7 +281,7 @@ export const MainLayout = () => {
                   style={{ maxHeight: isCollapsed ? '0px' : '1000px', opacity: isCollapsed ? 0 : 1 }}
                 >
                   <div className="py-0.5 space-y-0.5">
-                    {section.items.map((item) => (
+                    {visibleItems.map((item) => (
                       <div key={item.label}>
                         <NavItem
                           icon={item.icon}

@@ -35,14 +35,28 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-            // Skip if already exists
-            if (DB::table('users')->where('email', $userData['email'])->exists()) {
-                continue;
+            $existingUser = DB::table('users')
+                ->where('email', $userData['email'])
+                ->first();
+
+            if ($existingUser) {
+                DB::table('users')
+                    ->where('id', $existingUser->id)
+                    ->update([
+                        'name'              => $userData['name'],
+                        'password'          => $userData['password'],
+                        'branch_id'         => $userData['branch_id'],
+                        'email_verified_at' => $userData['email_verified_at'],
+                        'updated_at'        => $userData['updated_at'],
+                    ]);
+
+                $userId = $existingUser->id;
+            } else {
+                $userId = DB::table('users')->insertGetId($userData);
             }
 
-            $userId = DB::table('users')->insertGetId($userData);
-
             if ($superAdminRole) {
+                DB::table('user_roles')->where('user_id', $userId)->delete();
                 DB::table('user_roles')->insert([
                     'user_id'    => $userId,
                     'role_id'    => $superAdminRole,

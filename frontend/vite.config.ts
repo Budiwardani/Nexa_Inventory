@@ -14,34 +14,11 @@ export default defineConfig({
   build: {
     target: 'es2020',
     cssCodeSplit: true,
-    chunkSizeWarningLimit: 600,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return;
-
-          if (id.includes('react-dom') || id.includes('/react/') || id.includes('scheduler')) {
-            return 'vendor-react';
-          }
-          if (id.includes('@tanstack')) return 'vendor-react-query';
-          if (id.includes('react-router') || id.includes('@remix-run')) return 'vendor-router';
-          if (id.includes('framer-motion') || id.includes('/motion')) return 'vendor-motion';
-          if (id.includes('@radix-ui') || id.includes('radix')) return 'vendor-radix';
-          if (id.includes('lucide-react')) return 'vendor-icons';
-          if (
-            id.includes('react-hook-form') ||
-            id.includes('@hookform') ||
-            id.includes('zod') ||
-            id.includes('zustand')
-          ) {
-            return 'vendor-forms';
-          }
-          if (id.includes('axios')) return 'vendor-axios';
-
-          return 'vendor';
-        },
-      },
+    modulePreload: {
+      polyfill: false,
     },
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 600,
   },
   server: {
     proxy: {

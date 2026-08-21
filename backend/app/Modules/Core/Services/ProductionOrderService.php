@@ -122,13 +122,16 @@ class ProductionOrderService
         if (!$order) throw new \Exception('Production order not found.');
 
         // QC check
-        $hasQc = true;
-        if (Schema::hasTable('quality_control_inspections')) {
-            $hasQc = DB::table('quality_control_inspections')
-                ->where('production_order_id', $id)
-                ->where('status', 'Passed')
-                ->exists();
-        }
+        $hasQc = DB::table('qc_inspections')
+            ->where('production_order_id', $id)
+            ->where(function ($q) {
+                $q->where('result', 'Pass')
+                  ->orWhere('result', 'Passed')
+                  ->orWhere('status', 'Passed')
+                  ->orWhere('status', 'Approved')
+                  ->orWhere('status', 'Completed');
+            })
+            ->exists();
 
         if (!$hasQc) {
             throw new \Exception('Production cannot complete without a passed QC inspection.');

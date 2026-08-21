@@ -20,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(SupplierRepositoryInterface::class, SupplierRepository::class);
         $this->app->bind(PurchaseOrderRepositoryInterface::class, PurchaseOrderRepository::class);
         $this->app->bind(GoodsReceiptRepositoryInterface::class, GoodsReceiptRepository::class);
+        $this->app->bind(
+            \App\Modules\Core\Contracts\AiPredictionServiceInterface::class,
+            \App\Modules\Core\Services\AiPredictionService::class
+        );
     }
 
     /**

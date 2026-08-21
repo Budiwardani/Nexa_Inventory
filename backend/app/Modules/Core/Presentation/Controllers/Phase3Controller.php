@@ -3,14 +3,17 @@
 namespace App\Modules\Core\Presentation\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Core\Domain\Models\AuditLog;
+use App\Modules\Core\Services\Phase3Service;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use App\Modules\Core\Domain\Models\AuditLog;
 
 class Phase3Controller extends Controller
 {
+    public function __construct(
+        protected Phase3Service $service
+    ) {}
+
     private function log(Request $request, string $event, string $type, int $modelId, array $old = [], array $new = []): void
     {
         AuditLog::create([
@@ -30,9 +33,16 @@ class Phase3Controller extends Controller
 
     public function qcIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('qc_inspections')->whereNull('deleted_at')
-            ->orderByDesc('id')->paginate($request->get('per_page', 15));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total(), 'last_page' => $rows->lastPage(), 'current_page' => $rows->currentPage()]]);
+        $rows = $this->service->getQcInspections((int) $request->get('per_page', 15));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'current_page' => $rows->currentPage(),
+            ],
+        ]);
     }
 
     public function qcStore(Request $request): JsonResponse
@@ -48,37 +58,46 @@ class Phase3Controller extends Controller
             'inspector' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
-        $id = DB::table('qc_inspections')->insertGetId(array_merge($v, [
-            'uuid' => (string) Str::uuid(),
-            'qc_no' => 'QC-' . strtoupper(Str::random(6)),
-            'status' => 'Draft',
-            'created_by' => auth()->id(),
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-                $this->log($request, 'created', 'QCInspection', $id, [], ['status' => 'Created/Draft']);
-        return response()->json(['success' => true, 'message' => 'QC Inspection created', 'data' => DB::table('qc_inspections')->find($id)], 201);
+
+        $item = $this->service->createQcInspection($v, auth()->id());
+        $this->log($request, 'created', 'QCInspection', $item->id, [], ['status' => 'Created/Draft']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'QC Inspection created',
+            'data' => $item,
+        ], 201);
     }
 
     public function qcDestroy(int $id, Request $request): JsonResponse
     {
-        $row = DB::table('qc_inspections')->find($id);
-        if (!$row) return response()->json(['success' => false, 'message' => 'Not found'], 404);
-        if (!isset($row->status) || !in_array($row->status, ['Draft', 'Pending'])) {
-            return response()->json(['success' => false, 'message' => 'Cannot delete in current status'], 400);
+        try {
+            $deleted = $this->service->deleteQcInspection($id);
+            if (!$deleted) {
+                return response()->json(['success' => false, 'message' => 'Not found'], 404);
+            }
+
+            $this->log($request, 'deleted', 'QCInspection', $id, ['status' => $deleted->status ?? 'Unknown'], []);
+            return response()->json(['success' => true, 'message' => 'Deleted']);
+        } catch (\DomainException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
-        $oldStatus = $row->status ?? 'Unknown';
-        DB::table('qc_inspections')->where('id', $id)->update(['deleted_at' => now()]);
-        $this->log($request, 'deleted', 'QCInspection', $id, ['status' => $oldStatus], []);
-        return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 
     // ─── Scrap ───────────────────────────────────────────────────────────────
 
     public function scrapIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('production_scraps')->whereNull('deleted_at')
-            ->orderByDesc('id')->paginate($request->get('per_page', 15));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total(), 'last_page' => $rows->lastPage(), 'current_page' => $rows->currentPage()]]);
+        $rows = $this->service->getScraps((int) $request->get('per_page', 15));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'current_page' => $rows->currentPage(),
+            ],
+        ]);
     }
 
     public function scrapStore(Request $request): JsonResponse
@@ -92,39 +111,46 @@ class Phase3Controller extends Controller
             'unit_cost' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
         ]);
-        $unitCost = $v['unit_cost'] ?? 0;
-        $id = DB::table('production_scraps')->insertGetId(array_merge($v, [
-            'uuid' => (string) Str::uuid(),
-            'scrap_no' => 'SCR-' . strtoupper(Str::random(6)),
-            'total_cost' => $unitCost * $v['scrap_qty'],
-            'status' => 'Draft',
-            'created_by' => auth()->id(),
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-                $this->log($request, 'created', 'Scrap', $id, [], ['status' => 'Created/Draft']);
-        return response()->json(['success' => true, 'message' => 'Scrap recorded', 'data' => DB::table('production_scraps')->find($id)], 201);
+
+        $item = $this->service->createScrap($v, auth()->id());
+        $this->log($request, 'created', 'Scrap', $item->id, [], ['status' => 'Created/Draft']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Scrap recorded',
+            'data' => $item,
+        ], 201);
     }
 
     public function scrapDestroy(int $id, Request $request): JsonResponse
     {
-        $row = DB::table('production_scraps')->find($id);
-        if (!$row) return response()->json(['success' => false, 'message' => 'Not found'], 404);
-        if (!isset($row->status) || !in_array($row->status, ['Draft', 'Pending'])) {
-            return response()->json(['success' => false, 'message' => 'Cannot delete in current status'], 400);
+        try {
+            $deleted = $this->service->deleteScrap($id);
+            if (!$deleted) {
+                return response()->json(['success' => false, 'message' => 'Not found'], 404);
+            }
+
+            $this->log($request, 'deleted', 'Scrap', $id, ['status' => $deleted->status ?? 'Unknown'], []);
+            return response()->json(['success' => true, 'message' => 'Deleted']);
+        } catch (\DomainException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
-        $oldStatus = $row->status ?? 'Unknown';
-        DB::table('production_scraps')->where('id', $id)->update(['deleted_at' => now()]);
-        $this->log($request, 'deleted', 'Scrap', $id, ['status' => $oldStatus], []);
-        return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 
     // ─── Rework ──────────────────────────────────────────────────────────────
 
     public function reworkIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('production_reworks')->whereNull('deleted_at')
-            ->orderByDesc('id')->paginate($request->get('per_page', 15));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total(), 'last_page' => $rows->lastPage(), 'current_page' => $rows->currentPage()]]);
+        $rows = $this->service->getReworks((int) $request->get('per_page', 15));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'current_page' => $rows->currentPage(),
+            ],
+        ]);
     }
 
     public function reworkStore(Request $request): JsonResponse
@@ -140,37 +166,46 @@ class Phase3Controller extends Controller
             'rework_cycle' => 'nullable|integer|min:1',
             'notes' => 'nullable|string',
         ]);
-        $id = DB::table('production_reworks')->insertGetId(array_merge($v, [
-            'uuid' => (string) Str::uuid(),
-            'rework_no' => 'RWK-' . strtoupper(Str::random(6)),
-            'status' => 'Draft',
-            'created_by' => auth()->id(),
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-                $this->log($request, 'created', 'Rework', $id, [], ['status' => 'Created/Draft']);
-        return response()->json(['success' => true, 'message' => 'Rework recorded', 'data' => DB::table('production_reworks')->find($id)], 201);
+
+        $item = $this->service->createRework($v, auth()->id());
+        $this->log($request, 'created', 'Rework', $item->id, [], ['status' => 'Created/Draft']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Rework recorded',
+            'data' => $item,
+        ], 201);
     }
 
     public function reworkDestroy(int $id, Request $request): JsonResponse
     {
-        $row = DB::table('production_reworks')->find($id);
-        if (!$row) return response()->json(['success' => false, 'message' => 'Not found'], 404);
-        if (!isset($row->status) || !in_array($row->status, ['Draft', 'Pending'])) {
-            return response()->json(['success' => false, 'message' => 'Cannot delete in current status'], 400);
+        try {
+            $deleted = $this->service->deleteRework($id);
+            if (!$deleted) {
+                return response()->json(['success' => false, 'message' => 'Not found'], 404);
+            }
+
+            $this->log($request, 'deleted', 'Rework', $id, ['status' => $deleted->status ?? 'Unknown'], []);
+            return response()->json(['success' => true, 'message' => 'Deleted']);
+        } catch (\DomainException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
-        $oldStatus = $row->status ?? 'Unknown';
-        DB::table('production_reworks')->where('id', $id)->update(['deleted_at' => now()]);
-        $this->log($request, 'deleted', 'Rework', $id, ['status' => $oldStatus], []);
-        return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 
     // ─── Machines ─────────────────────────────────────────────────────────────
 
     public function machineIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('machines')->whereNull('deleted_at')
-            ->orderByDesc('id')->paginate($request->get('per_page', 15));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total(), 'last_page' => $rows->lastPage(), 'current_page' => $rows->currentPage()]]);
+        $rows = $this->service->getMachines((int) $request->get('per_page', 15));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'current_page' => $rows->currentPage(),
+            ],
+        ]);
     }
 
     public function machineStore(Request $request): JsonResponse
@@ -182,39 +217,46 @@ class Phase3Controller extends Controller
             'production_line' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
-        $id = DB::table('machines')->insertGetId(array_merge($v, [
-            'machine_code' => 'MCH-' . strtoupper(Str::random(6)),
-            'status' => 'Active',
-            'created_by' => auth()->id(),
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-                $this->log($request, 'created', 'Machine', $id, [], ['status' => 'Created/Draft']);
-        return response()->json(['success' => true, 'message' => 'Machine created', 'data' => DB::table('machines')->find($id)], 201);
+
+        $item = $this->service->createMachine($v, auth()->id());
+        $this->log($request, 'created', 'Machine', $item->id, [], ['status' => 'Created/Draft']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Machine created',
+            'data' => $item,
+        ], 201);
     }
 
     public function machineDestroy(int $id, Request $request): JsonResponse
     {
-        $row = DB::table('machines')->find($id);
-        if (!$row) return response()->json(['success' => false, 'message' => 'Not found'], 404);
-        if (!isset($row->status) || !in_array($row->status, ['Active', 'Inactive'])) {
-            return response()->json(['success' => false, 'message' => 'Cannot delete in current status'], 400);
+        try {
+            $deleted = $this->service->deleteMachine($id);
+            if (!$deleted) {
+                return response()->json(['success' => false, 'message' => 'Not found'], 404);
+            }
+
+            $this->log($request, 'deleted', 'Machine', $id, ['status' => $deleted->status ?? 'Unknown'], []);
+            return response()->json(['success' => true, 'message' => 'Deleted']);
+        } catch (\DomainException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
         }
-        $oldStatus = $row->status ?? 'Unknown';
-        DB::table('machines')->where('id', $id)->update(['deleted_at' => now()]);
-        $this->log($request, 'deleted', 'Machine', $id, ['status' => $oldStatus], []);
-        return response()->json(['success' => true, 'message' => 'Deleted']);
     }
 
     // ─── Maintenance ──────────────────────────────────────────────────────────
 
     public function maintenanceIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('machine_maintenance_logs as m')
-            ->leftJoin('machines as mc', 'm.machine_id', '=', 'mc.id')
-            ->select('m.*', 'mc.machine_name', 'mc.machine_code')
-            ->whereNull('m.deleted_at')
-            ->orderByDesc('m.id')->paginate($request->get('per_page', 15));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total(), 'last_page' => $rows->lastPage(), 'current_page' => $rows->currentPage()]]);
+        $rows = $this->service->getMaintenanceLogs((int) $request->get('per_page', 15));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'current_page' => $rows->currentPage(),
+            ],
+        ]);
     }
 
     public function maintenanceStore(Request $request): JsonResponse
@@ -230,26 +272,31 @@ class Phase3Controller extends Controller
             'description' => 'nullable|string',
             'findings' => 'nullable|string',
         ]);
-        $id = DB::table('machine_maintenance_logs')->insertGetId(array_merge($v, [
-            'uuid' => (string) Str::uuid(),
-            'maintenance_no' => 'MNT-' . strtoupper(Str::random(6)),
-            'status' => 'Scheduled',
-            'created_by' => auth()->id(),
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-                $this->log($request, 'created', 'Maintenance', $id, [], ['status' => 'Created/Draft']);
-        return response()->json(['success' => true, 'message' => 'Maintenance log created', 'data' => DB::table('machine_maintenance_logs')->find($id)], 201);
+
+        $item = $this->service->createMaintenanceLog($v, auth()->id());
+        $this->log($request, 'created', 'Maintenance', $item->id, [], ['status' => 'Created/Draft']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Maintenance log created',
+            'data' => $item,
+        ], 201);
     }
 
     // ─── Downtime ─────────────────────────────────────────────────────────────
 
     public function downtimeIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('machine_downtimes as d')
-            ->leftJoin('machines as mc', 'd.machine_id', '=', 'mc.id')
-            ->select('d.*', 'mc.machine_name', 'mc.machine_code')
-            ->orderByDesc('d.id')->paginate($request->get('per_page', 15));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total(), 'last_page' => $rows->lastPage(), 'current_page' => $rows->currentPage()]]);
+        $rows = $this->service->getDowntimes((int) $request->get('per_page', 15));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'current_page' => $rows->currentPage(),
+            ],
+        ]);
     }
 
     public function downtimeStore(Request $request): JsonResponse
@@ -263,29 +310,31 @@ class Phase3Controller extends Controller
             'root_cause' => 'nullable|string',
             'corrective_action' => 'nullable|string',
         ]);
-        $durationHours = 0;
-        if (!empty($v['end_time']) && !empty($v['start_time'])) {
-            $durationHours = round((strtotime($v['end_time']) - strtotime($v['start_time'])) / 3600, 2);
-        }
-        $id = DB::table('machine_downtimes')->insertGetId(array_merge($v, [
-            'uuid' => (string) Str::uuid(),
-            'downtime_no' => 'DWT-' . strtoupper(Str::random(6)),
-            'duration_hours' => $durationHours,
-            'status' => 'Open',
-            'created_by' => auth()->id(),
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-                $this->log($request, 'created', 'Downtime', $id, [], ['status' => 'Created/Draft']);
-        return response()->json(['success' => true, 'message' => 'Downtime recorded', 'data' => DB::table('machine_downtimes')->find($id)], 201);
+
+        $item = $this->service->createDowntime($v, auth()->id());
+        $this->log($request, 'created', 'Downtime', $item->id, [], ['status' => 'Created/Draft']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Downtime recorded',
+            'data' => $item,
+        ], 201);
     }
 
     // ─── Capacity Planning ────────────────────────────────────────────────────
 
     public function capacityIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('capacity_plans')->orderByDesc('id')
-            ->paginate($request->get('per_page', 15));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total(), 'last_page' => $rows->lastPage(), 'current_page' => $rows->currentPage()]]);
+        $rows = $this->service->getCapacityPlans((int) $request->get('per_page', 15));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'current_page' => $rows->currentPage(),
+            ],
+        ]);
     }
 
     public function capacityStore(Request $request): JsonResponse
@@ -299,24 +348,31 @@ class Phase3Controller extends Controller
             'headcount' => 'nullable|integer|min:1',
             'notes' => 'nullable|string',
         ]);
-        $id = DB::table('capacity_plans')->insertGetId(array_merge($v, [
-            'uuid' => (string) Str::uuid(),
-            'plan_no' => 'CAP-' . strtoupper(Str::random(6)),
-            'status' => 'Draft',
-            'created_by' => auth()->id(),
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-                $this->log($request, 'created', 'CapacityPlan', $id, [], ['status' => 'Created/Draft']);
-        return response()->json(['success' => true, 'message' => 'Capacity plan created', 'data' => DB::table('capacity_plans')->find($id)], 201);
+
+        $item = $this->service->createCapacityPlan($v, auth()->id());
+        $this->log($request, 'created', 'CapacityPlan', $item->id, [], ['status' => 'Created/Draft']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Capacity plan created',
+            'data' => $item,
+        ], 201);
     }
 
     // ─── Costing ─────────────────────────────────────────────────────────────
 
     public function costingIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('production_costs')->orderByDesc('id')
-            ->paginate($request->get('per_page', 15));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total(), 'last_page' => $rows->lastPage(), 'current_page' => $rows->currentPage()]]);
+        $rows = $this->service->getProductionCosts((int) $request->get('per_page', 15));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+                'last_page' => $rows->lastPage(),
+                'current_page' => $rows->currentPage(),
+            ],
+        ]);
     }
 
     public function costingStore(Request $request): JsonResponse
@@ -330,29 +386,29 @@ class Phase3Controller extends Controller
             'standard_cost' => 'nullable|numeric|min:0',
             'posting_date' => 'nullable|date',
         ]);
-        $totalCost = ($v['material_cost'] ?? 0) + ($v['labor_cost'] ?? 0) + ($v['machine_cost'] ?? 0) + ($v['overhead_cost'] ?? 0);
-        $variance = $totalCost - ($v['standard_cost'] ?? 0);
-        $id = DB::table('production_costs')->insertGetId(array_merge($v, [
-            'uuid' => (string) Str::uuid(),
-            'cost_no' => 'CST-' . strtoupper(Str::random(6)),
-            'total_cost' => $totalCost,
-            'variance' => $variance,
-            'status' => 'Draft',
-            'created_by' => auth()->id(),
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-                $this->log($request, 'created', 'ProductionCost', $id, [], ['status' => 'Created/Draft']);
-        return response()->json(['success' => true, 'message' => 'Cost record created', 'data' => DB::table('production_costs')->find($id)], 201);
+
+        $item = $this->service->createProductionCost($v, auth()->id());
+        $this->log($request, 'created', 'ProductionCost', $item->id, [], ['status' => 'Created/Draft']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cost record created',
+            'data' => $item,
+        ], 201);
     }
 
     // ─── Notifications ────────────────────────────────────────────────────────
 
     public function notifIndex(Request $request): JsonResponse
     {
-        $rows = DB::table('notifications')
-            ->where(function ($q) { $q->where('user_id', auth()->id())->orWhereNull('user_id'); })
-            ->orderByDesc('id')->paginate($request->get('per_page', 20));
-        return response()->json(['success' => true, 'data' => $rows->items(), 'meta' => ['total' => $rows->total()]]);
+        $rows = $this->service->getNotifications(auth()->id(), (int) $request->get('per_page', 20));
+        return response()->json([
+            'success' => true,
+            'data' => $rows->items(),
+            'meta' => [
+                'total' => $rows->total(),
+            ],
+        ]);
     }
 
     public function notifStore(Request $request): JsonResponse
@@ -364,17 +420,18 @@ class Phase3Controller extends Controller
             'channel' => 'nullable|string',
             'recipient' => 'nullable|string',
         ]);
-        $id = DB::table('notifications')->insertGetId(array_merge($v, [
-            'user_id' => auth()->id(),
-            'is_read' => false,
-            'created_at' => now(), 'updated_at' => now(),
-        ]));
-        return response()->json(['success' => true, 'message' => 'Notification created', 'data' => DB::table('notifications')->find($id)], 201);
+
+        $item = $this->service->createNotification($v, auth()->id());
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification created',
+            'data' => $item,
+        ], 201);
     }
 
     public function notifMarkRead(int $id): JsonResponse
     {
-        DB::table('notifications')->where('id', $id)->update(['is_read' => true]);
+        $this->service->markNotificationRead($id);
         return response()->json(['success' => true]);
     }
 }

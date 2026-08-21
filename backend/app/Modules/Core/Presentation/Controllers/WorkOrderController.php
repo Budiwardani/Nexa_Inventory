@@ -3,15 +3,17 @@
 namespace App\Modules\Core\Presentation\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Core\Domain\Models\WorkOrder;
-use App\Modules\Core\Domain\Models\WorkOrderOperation;
+use App\Modules\Core\Domain\Models\AuditLog;
+use App\Modules\Core\Services\WorkOrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Modules\Core\Domain\Models\AuditLog;
 
 class WorkOrderController extends Controller
 {
+    public function __construct(
+        protected WorkOrderService $service
+    ) {}
+
     private function log(Request $request, string $event, int $modelId, array $old = [], array $new = []): void
     {
         AuditLog::create([
@@ -29,8 +31,7 @@ class WorkOrderController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $workOrders = WorkOrder::with('operations')
-            ->paginate($request->get('per_page', 15));
+        $workOrders = $this->service->getPaginatedWorkOrders((int) $request->get('per_page', 15));
 
         return response()->json([
             'success' => true,
@@ -65,86 +66,56 @@ class WorkOrderController extends Controller
         ]);
 
         try {
-            DB::beginTransaction();
-
-            $workOrder = WorkOrder::create([
-                'product' => $validated['product'],
-                'variant' => $validated['variant'] ?? null,
-                'target_qty' => $validated['target_qty'],
-                'uom' => $validated['uom'] ?? 'PCS',
-                'work_center' => $validated['work_center'] ?? null,
-                'machine' => $validated['machine'] ?? null,
-                'scheduled_start' => $validated['scheduled_start'] ?? null,
-                'scheduled_end' => $validated['scheduled_end'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-                'status' => 'Draft',
-            ]);
-
-            foreach ($validated['operations'] ?? [] as $op) {
-                WorkOrderOperation::create([
-                    'work_order_id' => $workOrder->id,
-                    'operation_seq' => $op['operation_seq'],
-                    'operation_name' => $op['operation_name'],
-                    'work_center' => $op['work_center'] ?? null,
-                    'machine' => $op['machine'] ?? null,
-                    'setup_time' => $op['setup_time'] ?? 0,
-                    'run_time' => $op['run_time'] ?? 0,
-                ]);
-            }
-
-            DB::commit();
+            $workOrder = $this->service->createWorkOrder($validated);
 
             $this->log($request, 'created', $workOrder->id, [], [
-                'product' => $workOrder->product,
                 'status' => $workOrder->status,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Work Order created successfully',
-                'data' => $workOrder->load('operations'),
+                'message' => 'Work Order created',
+                'data' => $workOrder,
             ], 201);
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['success' => false, 'message' => 'Failed: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
     public function show(int $id): JsonResponse
     {
-        $wo = WorkOrder::with('operations')->find($id);
-        if (!$wo) return response()->json(['success' => false, 'message' => 'Not found'], 404);
-
-        return response()->json(['success' => true, 'data' => $wo]);
+        $workOrder = $this->service->findById($id);
+        if (!$workOrder) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        return response()->json(['success' => true, 'data' => $workOrder]);
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $wo = WorkOrder::find($id);
-        if (!$wo) return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        try {
+            $workOrder = $this->service->findById($id);
+            if (!$workOrder) return response()->json(['success' => false, 'message' => 'Not found'], 404);
 
-        $old = $wo->only(['status', 'actual_start', 'actual_end', 'completed_qty', 'reject_qty', 'notes']);
-        $wo->update($request->only(['status', 'actual_start', 'actual_end', 'completed_qty', 'reject_qty', 'notes']));
+            $old = $workOrder->only(['status', 'notes', 'scheduled_start', 'scheduled_end']);
+            $updated = $this->service->updateWorkOrder($id, $request->only(['status', 'notes', 'scheduled_start', 'scheduled_end']));
 
-        $this->log($request, 'updated', $wo->id, $old, $wo->only(['status', 'actual_start', 'actual_end', 'completed_qty', 'reject_qty', 'notes']));
+            $this->log($request, 'updated', $workOrder->id, $old, $updated->only(['status', 'notes', 'scheduled_start', 'scheduled_end']));
 
-        return response()->json(['success' => true, 'message' => 'Work Order updated', 'data' => $wo]);
+            return response()->json(['success' => true, 'message' => 'Updated', 'data' => $updated]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy(int $id, Request $request): JsonResponse
     {
-        $wo = WorkOrder::find($id);
-        if (!$wo) return response()->json(['success' => false, 'message' => 'Not found'], 404);
-
-        if (!in_array($wo->status, ['Draft', 'Pending'])) {
-            return response()->json(['success' => false, 'message' => 'Cannot delete work order in current status'], 400);
+        try {
+            $workOrder = $this->service->deleteWorkOrder($id);
+            $this->log($request, 'deleted', $id, ['status' => $workOrder->status], []);
+            return response()->json(['success' => true, 'message' => 'Deleted']);
+        } catch (\DomainException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Not found'], 404);
         }
-
-        $oldStatus = $wo->status;
-        $wo->delete();
-
-        $this->log($request, 'deleted', $id, ['status' => $oldStatus], []);
-
-        return response()->json(['success' => true, 'message' => 'Work Order deleted']);
     }
 }
